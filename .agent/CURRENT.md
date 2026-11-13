@@ -81,3 +81,32 @@ SUPERSEDES: A6-CHECKPOINT-ROM-SHELF-SIGNED-UPDATE-20261113
 EVIDENCE: .authority/setup/setup-20261113T135057Z/rom-shelf-build.json; .authority/setup/setup-20261113T135057Z/rom-shelf-device.json; .authority/setup/setup-20261113T135057Z/coverage.json
 SUMMARY: Pushed source, Authority setup, preserved provenance, and signed 0.3.1 APK to SketchOTP/ROMLibrary main at fa60e8107f4276d99858285c5d646d31b2bba136 with author SketchOTP <sketchotp@gmail.com>. Remote ref matched and the current workspace is connected to origin/main. Pixel update and launcher smoke test passed; product-level emulator/save acceptance remains open.
 NEXT: Use a disposable owner-controlled ROM/save fixture to verify SAF grants, scan/dedup behavior, save operations, and John GBA/Pizza Boy loading without touching existing game data.
+
+## A6-CHECKPOINT-ROM-SHELF-COVERS-20261113 — local cover art installed
+
+ENTRY_ID: A6-CHECKPOINT-ROM-SHELF-COVERS-20261113
+UTC: 2026-11-13T17:16:29Z
+ACTOR: Codex
+TYPE: CHECKPOINT
+GOAL: A6-GOAL-ROM-SHELF-20261113
+TASK: D-ROM-SHELF-COVERS-20261113
+STATUS: PARTIAL
+SUPERSEDES: A6-CHECKPOINT-ROM-LIBRARY-PUBLISHED-20261113
+EVIDENCE: .authority/setup/rom-shelf-covers-20261113/manifest.json; RomShelf/app/src/main/java/com/animus/romshelf/CoverLoader.java
+SUMMARY: Installed 52 per-ROM custom cover images from 38 online/local source assets into Pixel package com.animus.romshelf version 0.1.0, which holds the 52-entry ROM folder. Device SHA-256 checks matched all 52 files; no partials or stale missing markers remain. Three hack entries use Emerald base artwork because matching box art was not found; Petalburg Dynasty uses its title-screen image. ROMs, saves, APK source, and repository media were untouched. Visual UI confirmation remains open. The separately installed 0.3.1 package com.animus.romshelf.launcher has separate data and was not seeded.
+NEXT: After the phone is unlocked, reopen com.animus.romshelf and visually confirm the covers. If using com.animus.romshelf.launcher, grant it the ROM folder and import covers into that separate library.
+
+
+## A6-CHECKPOINT-ROM-SHELF-036-PREP-20261113 — signed candidate, device acceptance pending
+
+ENTRY_ID: A6-CHECKPOINT-ROM-SHELF-036-PREP-20261113
+UTC: 2026-11-13T19:10:00Z
+ACTOR: Codex
+TYPE: CHECKPOINT
+GOAL: A6-GOAL-ROM-SHELF-SHARED-PIZZA-20261113
+TASK: D-ROM-SHELF-OWNER-STEER-20261113
+STATUS: PARTIAL
+SUPERSEDES: A6-CHECKPOINT-ROM-SHELF-COVERS-20261113
+EVIDENCE: .authority/setup/rom-shelf-release-0.3.6-20261113.json; RomShelf/README.md; RomShelf/PROJECT_HANDOFF.md
+SUMMARY: ROM Shelf 0.3.6/versionCode 9 builds with seven JVM tests passing and release lint vital passing. The APK is zipaligned and signed with the original expected certificate; SHA-256 is 30f7fcefcd76fa1e373c4ece779eba9472417a798d3b24f04da62d0e45599a5f. Settings and data routing now use one canonical John GBA/Pizza Boy save folder and a global Pizza Boy launcher; John GBA and its data are preserved. AI resolver/OAuth source is removed. Eastern-time save labels and Pizza launch-session screenshot association are included. The Pixel is disconnected; only the tablet is visible and untouched. Live Monomyth comparison, screenshot folder inspection, install and device UI verification remain pending.
+NEXT: When Pixel reconnects, inspect all candidate save copies read-only, determine whether Monomyth is the newest Pizza save, verify/adjust Pizza Boy's save folder only with preserved backup evidence, then install and verify 0.3.6.

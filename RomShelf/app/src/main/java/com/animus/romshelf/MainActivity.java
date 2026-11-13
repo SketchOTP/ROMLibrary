@@ -8,10 +8,11 @@ import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.content.ActivityNotFoundException;
 import android.text.InputType;
-import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.TimeZone;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
@@ -45,16 +46,14 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public final class MainActivity extends Activity {
     private static final int BACKGROUND = 0xff101118, CARD = 0xff1d202b, TEXT = 0xfff5f3ff;
     private static final int SECONDARY = 0xffaaa5bb, PURPLE = 0xff9c75ef, GREEN = 0xff66d9a3;
-    private static final int PICK_ROMS = 210, PICK_SHARED = 211, PICK_JOHN = 212, PICK_COVER = 213, EXPORT_SAVE = 214, IMPORT_SAVE = 215, PICK_PIZZA = 216;
-    private static final String[] SAVE_FOLDERS = {FileStore.SHARED, FileStore.JOHN, FileStore.PIZZA};
+    private static final int PICK_ROMS = 210, PICK_SHARED = 211, PICK_COVER = 213, EXPORT_SAVE = 214, IMPORT_SAVE = 215, PICK_STATE_COVERS = 217;
     private final Handler main = new Handler(Looper.getMainLooper());
     private final ExecutorService io = Executors.newSingleThreadExecutor();
     private final AtomicBoolean scanning = new AtomicBoolean(false);
+    private final AtomicBoolean capturingScreenshot = new AtomicBoolean(false);
     private final List<Game> games = new ArrayList<>();
     private FileStore store;
     private CoverLoader covers;
-    private AiResolver ai;
-    private ChatGPTAuth auth;
     private SharedPreferences appPrefs;
     private boolean newestFirst = true;
     private Game chosenCoverGame;
@@ -67,10 +66,11 @@ public final class MainActivity extends Activity {
 
     @Override public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        clearUnusedAiCredentials();
+        clearLegacyLauncherChoices();
         store = new FileStore(this);
         covers = new CoverLoader(this);
-        auth = new ChatGPTAuth(this);
-        ai = new AiResolver(this, auth);
+        covers.clearLegacyAiState();
         appPrefs = getSharedPreferences("rom_shelf_launcher", MODE_PRIVATE);
         getWindow().setStatusBarColor(BACKGROUND);
         getWindow().setNavigationBarColor(BACKGROUND);
@@ -81,9 +81,35 @@ public final class MainActivity extends Activity {
     @Override protected void onResume() {
         super.onResume();
         if (store != null && grid != null) {
+            if (covers != null) covers.invalidateScreenshotIndex();
             if (games.isEmpty()) refresh();
-            else refreshSaveState();
+            else {
+                capturePendingScreenshot();
+                refreshSaveState();
+            }
         }
+    }
+
+    private void capturePendingScreenshot() {
+        if (appPrefs == null || covers == null) return;
+        String key = appPrefs.getString("pending_screenshot_game", "");
+        long launchedAt = appPrefs.getLong("pending_screenshot_after", 0);
+        if (key.isEmpty() || launchedAt <= 0) return;
+        if (!capturingScreenshot.compareAndSet(false, true)) return;
+        Game game = null;
+        for (Game candidate : games) if (candidate.key.equals(key)) { game = candidate; break; }
+        if (game == null) { capturingScreenshot.set(false); return; }
+        final Game launchedGame = game;
+        io.execute(() -> {
+            boolean captured = false;
+            try { captured = covers.captureLatestPizzaScreenshot(launchedGame, launchedAt); }
+            catch (Exception ignored) { }
+            finally {
+                appPrefs.edit().remove("pending_screenshot_game").remove("pending_screenshot_after").apply();
+                capturingScreenshot.set(false);
+            }
+            if (captured) main.post(this::render);
+        });
     }
 
     private void buildUi() {
@@ -91,7 +117,16 @@ public final class MainActivity extends Activity {
         base.setOrientation(LinearLayout.VERTICAL);
         base.setPadding(dp(16), dp(14), dp(16), 0);
         base.setBackgroundColor(BACKGROUND);
+        // Android 15+ enforces edge-to-edge for targetSdk 35. Keep the app's
+        // controls out of the system bars so Settings and the bottom grid remain
+        // reachable on current Pixel builds.
+        base.setOnApplyWindowInsetsListener((view, insets) -> {
+            view.setPadding(dp(16), dp(14) + insets.getSystemWindowInsetTop(), dp(16),
+                insets.getSystemWindowInsetBottom());
+            return insets.consumeSystemWindowInsets();
+        });
         setContentView(base);
+        base.requestApplyInsets();
 
         LinearLayout top = new LinearLayout(this);
         top.setOrientation(LinearLayout.HORIZONTAL);
@@ -174,6 +209,7 @@ public final class MainActivity extends Activity {
                 } else {
                     games.clear();
                     games.addAll(done);
+                    capturePendingScreenshot();
                     render();
                 }
             });
@@ -199,16 +235,30 @@ public final class MainActivity extends Activity {
     }
 
     private void migrateGamePreferences(Game game) {
-        String destination = "game_launcher_" + game.key;
-        if (!appPrefs.contains(destination)) {
-            for (String oldKey : game.legacyKeys) {
-                String source = "game_launcher_" + oldKey;
-                String value = appPrefs.getString(source, "");
-                if (!value.isEmpty()) { appPrefs.edit().putString(destination, value).apply(); break; }
-            }
-        }
-        ai.migrateIdentity(game);
         covers.migrateIdentity(game);
+    }
+
+    private void clearLegacyLauncherChoices() {
+        SharedPreferences preferences = getSharedPreferences("rom_shelf_launcher", MODE_PRIVATE);
+        SharedPreferences.Editor edit = preferences.edit();
+        for (String key : preferences.getAll().keySet()) {
+            if (key.startsWith("game_launcher_")) edit.remove(key);
+        }
+        String selected = preferences.getString("default_launcher", "");
+        boolean supported = false;
+        for (String packageId : PACKAGES) if (packageId.equals(selected)) supported = true;
+        if (!supported) edit.remove("default_launcher");
+        edit.apply();
+    }
+
+    private void clearUnusedAiCredentials() {
+        getSharedPreferences("chatgpt_connection", MODE_PRIVATE).edit().clear().apply();
+        getSharedPreferences("rom_shelf_ai", MODE_PRIVATE).edit().clear().apply();
+        try {
+            java.security.KeyStore keys = java.security.KeyStore.getInstance("AndroidKeyStore");
+            keys.load(null);
+            if (keys.containsAlias("rom_shelf_chatgpt_oauth_v03")) keys.deleteEntry("rom_shelf_chatgpt_oauth_v03");
+        } catch (Exception ignored) { }
     }
 
     private void render() {
@@ -220,7 +270,7 @@ public final class MainActivity extends Activity {
         int cardWidth = (widthDp - 32 - (cols - 1) * 12) / cols;
         String query = search == null ? "" : search.getText().toString().trim().toLowerCase(Locale.ROOT);
         int shown = 0, saved = 0;
-        boolean savesLinked = store.getUri(FileStore.SHARED) != null || store.getUri(FileStore.JOHN) != null || store.getUri(FileStore.PIZZA) != null;
+        boolean savesLinked = store.getUri(FileStore.SHARED) != null;
         List<Game> ordered = new ArrayList<>(games);
         if (newestFirst) Collections.sort(ordered, (a,b) -> {
             int t = Long.compare(b.lastPlayedEstimate(), a.lastPlayedEstimate());
@@ -232,8 +282,8 @@ public final class MainActivity extends Activity {
             if (!g.title.toLowerCase(Locale.ROOT).contains(query) && !g.stem.toLowerCase(Locale.ROOT).contains(query)) continue;
             addGameCard(g, cardWidth, cols, shown++, savesLinked);
         }
-        folderStatus.setText("ROMs " + mark(FileStore.ROMS) + "   Shared " + mark(FileStore.SHARED) +
-            "   John " + mark(FileStore.JOHN) + "   Pizza " + mark(FileStore.PIZZA) + "   ·   Tap to play · Hold for options");
+        folderStatus.setText("ROMs " + mark(FileStore.ROMS) + "   John / Pizza shared saves " + mark(FileStore.SHARED) +
+            "   ·   Pizza Boy launch · Hold for options");
         if (store.getUri(FileStore.ROMS) == null) {
             summary.setText("Choose a ROM folder to build your library");
             TextView select = pill("Choose ROM folder", PURPLE, Color.WHITE);
@@ -292,7 +342,7 @@ public final class MainActivity extends Activity {
         LinearLayout textBox = new LinearLayout(this);
         textBox.setOrientation(LinearLayout.VERTICAL);
         textBox.setPadding(dp(9), dp(10), dp(9), dp(10));
-        tile.addView(textBox, new LinearLayout.LayoutParams(-1, dp(100)));
+        tile.addView(textBox, new LinearLayout.LayoutParams(-1, dp(108)));
         TextView title = text(game.title, 13, TEXT, true);
         title.setMaxLines(2);
         title.setEllipsize(android.text.TextUtils.TruncateAt.END);
@@ -303,9 +353,9 @@ public final class MainActivity extends Activity {
         LinearLayout.LayoutParams vLp = new LinearLayout.LayoutParams(-1, -2);
         vLp.setMargins(0, dp(4), 0, 0);
         textBox.addView(version, vLp);
-        TextView recent = text(game.lastPlayedEstimate() > 0 ? "Saved " + shortDate(game.lastPlayedEstimate()) :
+        TextView recent = text(game.lastPlayedEstimate() > 0 ? savedDate(game.lastPlayedEstimate()) :
             (("SAVED".equals(game.saveStatus())) ? "Save date unknown" : "Not played yet"), 10, game.lastPlayedEstimate() > 0 ? GREEN : SECONDARY, false);
-        recent.setMaxLines(1);
+        recent.setMaxLines(2);
         recent.setEllipsize(android.text.TextUtils.TruncateAt.END);
         LinearLayout.LayoutParams recentLp = new LinearLayout.LayoutParams(-1, -2);
         recentLp.topMargin = dp(5);
@@ -319,52 +369,118 @@ public final class MainActivity extends Activity {
         grid.addView(tile, lp);
     }
 
-    private String shortDate(long millis) {
-        return DateFormat.getDateInstance(DateFormat.MEDIUM).format(new Date(millis));
+    private String savedDate(long millis) {
+        return easternDateFormat("'Saved' MMM d, yyyy · h:mm a z").format(new Date(millis));
     }
     private String fullDate(long millis) {
         return millis <= 0 ? "Unknown (folder did not provide timestamp)" :
-            DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT).format(new Date(millis));
+            easternDateFormat("MMM d, yyyy h:mm a z").format(new Date(millis));
+    }
+    private SimpleDateFormat easternDateFormat(String pattern) {
+        SimpleDateFormat format = new SimpleDateFormat(pattern, Locale.US);
+        format.setTimeZone(TimeZone.getTimeZone("America/New_York"));
+        return format;
     }
 
-    private static final String[] EMULATORS = {"Pizza Boy GBA", "Pizza Boy GBA Free", "John GBA", "John GBA Lite"};
-    private static final String[] PACKAGES = {"it.dbtecno.pizzaboygba", "it.dbtecno.pizzaboygbafree", "com.johnemulators.johngba", "com.johnemulators.johngbalite"};
+    private static final String[] EMULATORS = {"Pizza Boy GBA Pro", "Pizza Boy GBA", "Pizza Boy GBA Free"};
+    private static final String[] PACKAGES = {"it.dbtecno.pizzaboygbapro", "it.dbtecno.pizzaboygba", "it.dbtecno.pizzaboygbafree"};
 
     private String launcherFor(Game game) {
-        return appPrefs.getString("game_launcher_" + game.key, appPrefs.getString("default_launcher", ""));
+        return resolvedDefaultLauncher();
+    }
+    private String resolvedDefaultLauncher() {
+        String current = appPrefs.getString("default_launcher", "");
+        if (isEmulatorInstalled(current)) return current;
+        // Old installs can retain a package choice that is no longer installed.
+        // Pick the first installed supported emulator (Pizza Boy Pro has priority)
+        // and persist it so the next launch uses the same working route.
+        for (String candidate : PACKAGES) {
+            if (isEmulatorInstalled(candidate)) {
+                appPrefs.edit().putString("default_launcher", candidate).apply();
+                return candidate;
+            }
+        }
+        return "";
+    }
+    private boolean isEmulatorInstalled(String packageId) {
+        if (packageId == null || packageId.isEmpty()) return false;
+        boolean supported = false;
+        for (String candidate : PACKAGES) if (candidate.equals(packageId)) { supported = true; break; }
+        if (!supported) return false;
+        try {
+            getPackageManager().getApplicationInfo(packageId, 0);
+            return true;
+        } catch (android.content.pm.PackageManager.NameNotFoundException ignored) { return false; }
+    }
+    private List<Integer> installedEmulatorIndexes() {
+        List<Integer> indexes = new ArrayList<>();
+        for (int i = 0; i < PACKAGES.length; i++) if (isEmulatorInstalled(PACKAGES[i])) indexes.add(i);
+        return indexes;
     }
     private String launcherLabel(String packageId) {
         for (int i=0;i<PACKAGES.length;i++) if (PACKAGES[i].equals(packageId)) return EMULATORS[i];
-        return "Choose emulator";
+        return "Pizza Boy";
     }
     private void chooseEmulator(Game game, boolean launchAfterSelection) {
-        String current = game == null ? appPrefs.getString("default_launcher", "") : launcherFor(game);
+        String current = game == null ? resolvedDefaultLauncher() : launcherFor(game);
+        List<Integer> installed = installedEmulatorIndexes();
+        if (installed.isEmpty()) {
+            new AlertDialog.Builder(this).setTitle("No supported emulator found")
+                .setMessage("Install Pizza Boy GBA, then choose the installed Pizza Boy version here.")
+                .setPositiveButton("OK", null).show();
+            return;
+        }
+        String[] labels = new String[installed.size()];
         int selected = -1;
-        for (int i=0;i<PACKAGES.length;i++) if (PACKAGES[i].equals(current)) selected=i;
+        for (int row = 0; row < installed.size(); row++) {
+            int index = installed.get(row);
+            labels[row] = EMULATORS[index];
+            if (PACKAGES[index].equals(current)) selected = row;
+        }
         new AlertDialog.Builder(this)
-            .setTitle(game == null ? "Default GBA emulator" : "Launch " + game.title + " with")
-            .setSingleChoiceItems(EMULATORS, selected, (dialog, index) -> {
-                String pkg = PACKAGES[index];
-                if (game == null) appPrefs.edit().putString("default_launcher",pkg).apply();
-                else appPrefs.edit().putString("game_launcher_" + game.key,pkg).apply();
+            .setTitle("Pizza Boy version")
+            .setSingleChoiceItems(labels, selected, (dialog, row) -> {
+                String pkg = PACKAGES[installed.get(row)];
+                appPrefs.edit().putString("default_launcher",pkg).apply();
                 dialog.dismiss();
                 if (launchAfterSelection && game != null) launchGame(game);
-                else toast((game == null ? "Default: " : game.title + " → ") + launcherLabel(pkg));
+                else toast("Pizza Boy version: " + launcherLabel(pkg));
             }).setNegativeButton("Cancel", null).show();
     }
     private void launchGame(Game game) {
         String pkg = launcherFor(game);
         if (pkg.isEmpty()) { chooseEmulator(game, true); return; }
+        launchRomIntent(game, pkg);
+    }
+    private void launchRomIntent(Game game, String pkg) {
         Uri rom = game.rom.getUri();
-        // URI permission is passed to the chosen emulator; no broad filesystem access is needed.
-        Intent intent = new Intent(Intent.ACTION_VIEW);
-        intent.setDataAndType(rom, "application/octet-stream");
-        intent.setPackage(pkg);
-        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        intent.setClipData(ClipData.newRawUri("GBA ROM", rom));
         try {
-            startActivity(intent);
+            // Pizza Boy Pro's exported MainActivity does not declare a data/MIME
+            // filter, so address its ROM-loading entry point explicitly.
+            String[] mimeTypes = {"application/octet-stream", "application/x-gba-rom", "application/zip", "*/*"};
+            Exception lastFailure = null;
+            for (String mime : mimeTypes) {
+                Intent intent = new Intent(Intent.ACTION_VIEW);
+                intent.setDataAndType(rom, mime);
+                intent.setPackage(pkg);
+                intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                intent.setClipData(ClipData.newRawUri("GBA ROM", rom));
+                if ("it.dbtecno.pizzaboygbapro".equals(pkg)) {
+                    intent.setClassName(pkg, pkg + ".MainActivity");
+                }
+                try {
+                    appPrefs.edit().putString("pending_screenshot_game", game.key)
+                        .putLong("pending_screenshot_after", System.currentTimeMillis()).apply();
+                    startActivity(intent);
+                    return;
+                } catch (ActivityNotFoundException e) {
+                    clearPendingScreenshot();
+                    lastFailure = e;
+                }
+            }
+            if (lastFailure != null) throw lastFailure;
         } catch (Exception e) {
+            clearPendingScreenshot();
             // Android emulators do not all expose compatible external-ROM VIEW activities.
             new AlertDialog.Builder(this).setTitle("Could not launch ROM")
                 .setMessage(launcherLabel(pkg) + " did not accept the external ROM intent. Install/check that emulator or choose a different one. If it opens but doesn't load, import the game through the emulator first. Your ROM and save are unchanged.")
@@ -372,34 +488,26 @@ public final class MainActivity extends Activity {
                 .setPositiveButton("Change emulator",(d,w)->chooseEmulator(game,true)).show();
         }
     }
+    private void clearPendingScreenshot() {
+        if (appPrefs != null) appPrefs.edit().remove("pending_screenshot_game").remove("pending_screenshot_after").apply();
+    }
     private void openGame(Game game) {
         List<String> choices = new ArrayList<>();
         List<Runnable> actions = new ArrayList<>();
-        addAction(choices, actions, "Play using " + launcherLabel(launcherFor(game)), () -> launchGame(game));
-        addAction(choices, actions, "Choose emulator for this game", () -> chooseEmulator(game, false));
-        for (String folder : SAVE_FOLDERS) {
-            if (saveFor(game, folder) != null)
-                addAction(choices, actions, "Export " + folderLabel(folder) + " battery save (.sav)", () -> exportSave(game, folder));
-            if (store.getUri(folder) != null)
-                addAction(choices, actions, "Import .sav into " + folderLabel(folder), () -> confirmImport(game, folder));
-            if (store.newestBackup(game, folder) != null)
-                addAction(choices, actions, "Restore backup in " + folderLabel(folder), () -> confirmRestore(game, folder));
-        }
-        addAction(choices, actions, "AI: identify game and search artwork", () -> identifyGame(game, true));
+        addAction(choices, actions, "Play with " + launcherLabel(launcherFor(game)), () -> launchGame(game));
+        if (game.sharedSave != null)
+            addAction(choices, actions, "Export shared battery save (.sav)", () -> exportSave(game, FileStore.SHARED));
+        if (store.getUri(FileStore.SHARED) != null)
+            addAction(choices, actions, "Import .sav into shared folder", () -> confirmImport(game, FileStore.SHARED));
+        if (store.newestBackup(game, FileStore.SHARED) != null)
+            addAction(choices, actions, "Restore shared save backup", () -> confirmRestore(game, FileStore.SHARED));
         addAction(choices, actions, "Edit display title", () -> editDisplayTitle(game));
-        String imageSource = covers.sourceFor(game);
-        if (!imageSource.isEmpty()) addAction(choices, actions, "View artwork source", () -> {
-            try { startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(imageSource))); }
-            catch (Exception ignored) { toast("No browser available"); }
-        });
-        addAction(choices, actions, "Choose cover image", () -> chooseCover(game));
+        addAction(choices, actions, "Import screenshot or cover", () -> chooseCover(game));
         addAction(choices, actions, "Remove custom cover", () -> { covers.removeCustom(game); render(); });
         addAction(choices, actions, "Save and ROM details", () -> new AlertDialog.Builder(this)
             .setTitle(game.title)
             .setMessage("ROM: " + game.fileName + "\nVersion: " + game.version +
                 "\nSave: " + (game.sharedSave == null ? "No .sav found" : game.sharedSave.getName() + " (" + game.sharedSave.length() + " bytes)") +
-                "\nJohn GBA save: " + describeSave(game.johnSave, game.johnStamp) +
-                "\nPizza Boy save: " + describeSave(game.pizzaSave, game.pizzaStamp) +
                 "\nLast save: " + fullDate(game.lastPlayedEstimate()) +
                 "\nSelected emulator: " + launcherLabel(launcherFor(game)) +
                 "\n\nSave dates approximate play activity. ROM Shelf cannot force an emulator to load a save state. Only compatible battery saves are shared. Duplicate ROMs are hidden, not deleted.")
@@ -460,22 +568,8 @@ public final class MainActivity extends Activity {
         });
     }
 
-    private DocumentFile saveFor(Game game, String key) {
-        if (FileStore.SHARED.equals(key)) return game.sharedSave;
-        if (FileStore.JOHN.equals(key)) return game.johnSave;
-        if (FileStore.PIZZA.equals(key)) return game.pizzaSave;
-        return null;
-    }
-
     private String folderLabel(String key) {
-        if (FileStore.SHARED.equals(key)) return "Shared saves";
-        if (FileStore.JOHN.equals(key)) return "John GBA saves";
-        if (FileStore.PIZZA.equals(key)) return "Pizza Boy saves";
-        return "selected saves";
-    }
-
-    private String describeSave(DocumentFile save, long stamp) {
-        return save == null ? "Not found" : save.getName() + " (" + save.length() + " bytes, " + fullDate(stamp) + ")";
+        return "John GBA / Pizza Boy shared saves";
     }
 
     private void editDisplayTitle(Game g) {
@@ -488,114 +582,39 @@ public final class MainActivity extends Activity {
                 String name = edit.getText().toString().trim();
                 if (name.length() < 2 || name.length() > 90) { toast("Enter a title (2–90 characters)"); return; }
                 store.setMetadata(g, name, g.version);
-                covers.clearAiImage(g);
+                covers.invalidate(g);
                 render();
             }).show();
-    }
-
-    private void aiSettings() {
-        List<String> items = new ArrayList<>();
-        List<Runnable> actions = new ArrayList<>();
-        if (auth.connected()) {
-            addAction(items, actions, "Connected: " + auth.account(), () -> toast("ChatGPT plan authorized"));
-            addAction(items, actions, "Manage ChatGPT plan usage", () -> {
-                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://chatgpt.com/settings/usage")));
-            });
-            addAction(items, actions, "Disconnect ChatGPT", () -> new AlertDialog.Builder(this)
-                .setTitle("Disconnect ChatGPT?").setMessage("End this ROM Shelf authorization and remove locally saved tokens.")
-                .setNegativeButton("Cancel", null)
-                .setPositiveButton("Disconnect", (d,w) -> io.execute(() -> {
-                    String msg=auth.disconnect(); main.post(() -> toast(msg));
-                })).show());
-        } else addAction(items, actions, "Continue with ChatGPT", this::signInChatGPT);
-        addAction(items, actions, "How AI works", () -> new AlertDialog.Builder(this).setTitle("Private AI matching")
-            .setMessage("Connect with the official ChatGPT browser flow. ROM Shelf asks separately for plan usage. Only ROM filenames and current display metadata are sent for title/art research; ROM and save files remain local. AI requests count toward eligible ChatGPT plan usage and may use credits where authorized. The app never reads your Codex CLI tokens. You can disconnect anytime.")
-            .setPositiveButton("OK",null).show());
-        new AlertDialog.Builder(this).setTitle("ChatGPT AI")
-            .setItems(items.toArray(new String[0]), (d,i) -> actions.get(i).run())
-            .setNegativeButton("Close",null).show();
-    }
-    private void signInChatGPT() {
-        toast("Complete authorization in your browser");
-        auth.signIn((error, email) -> main.post(() -> {
-            if (error != null) new AlertDialog.Builder(this).setTitle("ChatGPT connection unsuccessful")
-                .setMessage(error).setPositiveButton("OK",null).show();
-            else toast("ChatGPT connected: " + email);
-        }));
-    }
-
-    private void identifyGame(Game g, boolean force) {
-        if (!ai.configured()) { aiSettings(); return; }
-        if (!force && ai.processed(g)) return;
-        toast("AI searching for " + g.title);
-        io.execute(() -> {
-            try {
-                AiResolver.Answer answer = ai.identify(g);
-                store.setMetadata(g, answer.title, answer.version);
-                if (!answer.imageUrl.isEmpty()) covers.setAiImage(g, answer.imageUrl, answer.sourceUrl);
-                else covers.clearAiImage(g);
-                ai.markProcessed(g);
-                main.post(() -> { render(); toast("Updated: " + g.title + (answer.imageUrl.isEmpty() ? " (no verified art URL)" : " + art")); });
-            } catch (Exception e) { main.post(() -> toast("AI request failed: " + e.getMessage())); }
-        });
-    }
-
-    private void bulkIdentify() {
-        if (!ai.configured()) { aiSettings(); return; }
-        List<Game> pending = new ArrayList<>();
-        for (Game g : games) if (!ai.processed(g) && pending.size() < 12) pending.add(g);
-        if (pending.isEmpty()) { toast("No new games to identify (use per-game AI to retry)"); return; }
-        new AlertDialog.Builder(this).setTitle("AI identify " + pending.size() + " games?")
-            .setMessage("This will send game filenames to OpenAI, use online image search, and make up to " + pending.size() +
-                " ChatGPT plan requests. ROM and save files remain on your device; AI usage counts toward your eligible plan allowance and any authorized credits.")
-            .setNegativeButton("Cancel", null)
-            .setPositiveButton("Run AI", (d,w) -> io.execute(() -> {
-                int ok = 0; String lastError = null;
-                for (Game game : pending) {
-                    try {
-                        AiResolver.Answer result = ai.identify(game);
-                        store.setMetadata(game, result.title, result.version);
-                        if (!result.imageUrl.isEmpty()) covers.setAiImage(game, result.imageUrl, result.sourceUrl);
-                        else covers.clearAiImage(game);
-                        ai.markProcessed(game);
-                        ok++;
-                    } catch (Exception e) { lastError = e.getMessage(); break; }
-                    main.post(this::render);
-                }
-                final int done = ok;
-                final String error = lastError;
-                main.post(() -> { render(); toast(done + " titles updated" + (error == null ? "" : " · Stopped: " + error)); });
-            })).show();
     }
 
     private void openSettings() {
         String[] options = {
             "ROM folder " + mark(FileStore.ROMS),
-            "Shared GBA .sav folder " + mark(FileStore.SHARED),
-            "John GBA .sav folder " + mark(FileStore.JOHN),
-            "Pizza Boy .sav folder " + mark(FileStore.PIZZA),
-            "Default emulator: " + launcherLabel(appPrefs.getString("default_launcher", "")),
+            "John GBA / Pizza Boy shared saves " + mark(FileStore.SHARED),
+            "Pizza Boy version: " + launcherLabel(resolvedDefaultLauncher()),
+            "Use latest game screenshot as cover: " + (covers.screenshotsEnabled() ? "On" : "Off"),
+            "Screenshot source folder " + (covers.screenshotFolder() == null ? "○" : "●"),
             "Rescan collection",
-            "ChatGPT AI: " + (auth.connected() ? "Connected" : "Not connected"),
-            "AI identify up to 12 new games",
-            "Launcher and save folder help"
+            "ROM Shelf help"
         };
         new AlertDialog.Builder(this).setTitle("ROM Shelf settings")
             .setItems(options, (d,which) -> {
                 if (which == 0) pickFolder(PICK_ROMS);
                 else if (which == 1) pickFolder(PICK_SHARED);
-                else if (which == 2) pickFolder(PICK_JOHN);
-                else if (which == 3) pickFolder(PICK_PIZZA);
-                else if (which == 4) chooseEmulator(null,false);
+                else if (which == 2) chooseEmulator(null,false);
+                else if (which == 3) {
+                    covers.setScreenshotsEnabled(!covers.screenshotsEnabled());
+                    toast("Screenshot covers " + (covers.screenshotsEnabled() ? "enabled" : "disabled"));
+                    render();
+                }
+                else if (which == 4) pickFolder(PICK_STATE_COVERS);
                 else if (which == 5) refresh();
-                else if (which == 6) aiSettings();
-                else if (which == 7) bulkIdentify();
                 else showHelp();
             }).setNegativeButton("Close",null).show();
     }
     private void showHelp() {
         new AlertDialog.Builder(this).setTitle("How ROM Shelf works")
-            .setMessage("1. Select the ROM folder. Optionally link shared, John GBA, and Pizza Boy .sav folders that Android lets you access.\n2. Choose the default emulator in Settings.\n3. Tap any cover to open a ROM; long-press it for that game's settings and emulator override.\n4. ROM Shelf tracks saves in the folders you link. The emulator handles loading its battery save from its configured directory; ROM Shelf cannot redirect private emulator storage. Use the emulator's own import if external ROM launch is unsupported.\n\nRecent sorting uses the newest visible .sav timestamp as an activity estimate; a save state is not a portable battery save. Android may block private emulator folders.\n\nIdentical ROM content hashes appear once; original files are not deleted.")
+            .setMessage("1. Select the ROM folder and the Johnemulators/GBA/save folder for shared .sav files. Set Pizza Boy's Save folder to this same directory. John GBA remains installed with its data, but ROM Shelf launches every game through the selected Pizza Boy version.\n2. Tap a cover to play; long-press it for save, title, and artwork options.\n3. Enable screenshot covers and choose Pictures/Pizza Boy A Screenshots. Pizza Boy names screenshots by time, so ROM Shelf associates the newest screenshot taken during a game's launch session with that game when you return. Take the screenshot after reaching the save point you want shown. ROM Shelf copies it into its own cover cache. You can also import a screenshot directly for one game.\n\nThe saved time is the battery-save file timestamp in Eastern Time. Battery saves and emulator save states are different formats. Identical ROM content hashes appear once; original files are not deleted.")
             .setPositiveButton("OK",null).show();
     }
     private void pickFolder(int request) {
@@ -638,8 +657,17 @@ public final class MainActivity extends Activity {
             });
             return;
         }
-        String key = request == PICK_ROMS ? FileStore.ROMS : request == PICK_SHARED ? FileStore.SHARED :
-            request == PICK_JOHN ? FileStore.JOHN : request == PICK_PIZZA ? FileStore.PIZZA : null;
+        if (request == PICK_STATE_COVERS) {
+            try {
+                int flags = data.getFlags() & (Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+                getContentResolver().takePersistableUriPermission(uri, flags);
+                covers.setScreenshotFolder(uri);
+                toast("Screenshot source folder saved");
+                render();
+            } catch (Exception e) { toast("Could not keep screenshot folder permission: " + e.getMessage()); }
+            return;
+        }
+        String key = request == PICK_ROMS ? FileStore.ROMS : request == PICK_SHARED ? FileStore.SHARED : null;
         if (key == null) return;
         try {
             int flags = data.getFlags() & (Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);

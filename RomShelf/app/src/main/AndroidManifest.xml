@@ -2,10 +2,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.INTERNET" />
     <queries>
-        <package android:name="com.johnemulators.johngba" />
-        <package android:name="com.johnemulators.johngbalite" />
         <package android:name="it.dbtecno.pizzaboygba" />
         <package android:name="it.dbtecno.pizzaboygbafree" />
+        <package android:name="it.dbtecno.pizzaboygbapro" />
     </queries>
     <application
         android:label="ROM Shelf"

@@ -62,3 +62,16 @@ The following source changes supersede the applicable open code findings above. 
 4. On the Pixel, test real emulator launch and shared `.sav` behavior only with a user-approved test ROM/save; preserve all existing user data.
 5. Test ChatGPT OAuth and AI only after current official interfaces and account consent are confirmed; do not treat this handoff's claims as live API verification.
 6. Keep the private signing key and password out of Git, build logs, and workflow artifacts. Do not generate a replacement key or claim update compatibility under a different signer.
+
+## Owner steering — 2026-11-13 (current direction)
+
+This section supersedes the original charter's optional AI matching and preferred-emulator language. The full effective revision is recorded in `.agent/GOAL.md`.
+
+- ROM Shelf is Pizza Boy only for launches. One app-wide Pizza Boy version is used for every game; installed Pizza Boy GBA variants are fallback choices. Legacy per-game emulator choices are cleared. John GBA remains installed and its `GBA/save` directory is the shared battery-save location; this does not imply John is a supported Shelf launch target.
+- ChatGPT OAuth and AI title/art matching have been removed from the app. Startup clears legacy local token preferences/keystore alias and old AI image URL references; it preserves cached cover files and saved game metadata. Libretro cover download, manually installed art, and per-game screenshot/cover import remain.
+- Settings is reduced to ROM and one John/Pizza shared save-folder link, Pizza Boy version, screenshot-cover toggle/source, rescan, and help. ROM Shelf reads and writes the one canonical folder even if older settings contain separate emulator folder URIs. Game cards show the save file's last-modified time in `America/New_York`.
+- Release candidate 0.3.6/versionCode 9 builds and signs with the original owner certificate. The Pixel was disconnected before it could be installed. The previously installed 0.3.5 was device-verified: tapping Pokémon Legends Delta opened Pizza Boy GBA Pro 3.9.2, and Pizza Boy logged the ROM load plus battery-save read through the John GBA `GBA/save` document tree.
+- Before the Pixel disconnected, the shared folder contained 33 unique nonempty `.sav` files. Newer source content won duplicate-name collisions; Pizza Boy won two collisions. The empty placeholder was skipped, seven John `.sav0` sidecars and emulator save-state files were retained, and all output hashes matched the newest nonempty source inputs.
+- **Still pending:** reconnect the Pixel, compare live `.sav` modification times (especially `monomyth_v1_1.sav`) against all current saves and Pizza Boy's inactive private save copies, inspect Pizza Boy's screenshot/preview output folder, install 0.3.6 over the same signed package, and verify the Pizza-only menu, Eastern-time label, and screenshot source/cache behavior. Do not change saves during the timestamp check.
+
+Historical sections above describe the source state and claims at takeover. They remain records, not current product direction.

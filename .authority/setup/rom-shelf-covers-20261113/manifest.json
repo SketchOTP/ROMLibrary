@@ -1,0 +1,479 @@
+{
+  "record_type": "ROM Shelf local cover installation evidence",
+  "created_utc": "2026-11-13T17:16:54Z",
+  "device_model": "Pixel 11 Pro Fold",
+  "target_package": "com.animus.romshelf",
+  "target_version": "0.1.0",
+  "rom_tree_label": "Johnemulators/GBA/game",
+  "library_entries": 52,
+  "installed_custom_images": 52,
+  "unique_source_images": 38,
+  "artwork_sources": [
+    {
+      "asset_id": "fire_red",
+      "kind": "base_or_native_release_box_art",
+      "source_page": "https://thumbnails.libretro.com/Nintendo%20-%20Game%20Boy%20Advance/Named_Boxarts/Pokemon%20-%20FireRed%20Version%20(USA).png",
+      "sha256": "d7c4f0661bf528d6555969da7b18efc7611fc35d0a4d911538fd1c398c7ce964",
+      "bytes": 522140,
+      "cover_keys": [
+        "2671b16f2dfae685bc00b61e",
+        "f347d348bb4a5f5cf731ad13",
+        "a58f7090ee12db9462c8b4b8",
+        "1847ca0061732a7bc38ab2ac",
+        "0233d542d4164e2c74f8d091"
+      ]
+    },
+    {
+      "asset_id": "sacred_stones",
+      "kind": "native_release_box_art",
+      "source_page": "https://thumbnails.libretro.com/Nintendo%20-%20Game%20Boy%20Advance/Named_Boxarts/Fire%20Emblem%20-%20The%20Sacred%20Stones%20(USA,%20Australia).png",
+      "sha256": "0b2a65a766c4d5ba4277c6dbb912c1a26c8ed187ec686f763fe2e89b21c62538",
+      "bytes": 476356,
+      "cover_keys": [
+        "a8564e3745ef59d6dd5eff2c"
+      ]
+    },
+    {
+      "asset_id": "emerald",
+      "kind": "base_game_fallback_no_exact_art_found",
+      "source_page": "https://thumbnails.libretro.com/Nintendo%20-%20Game%20Boy%20Advance/Named_Boxarts/Pokemon%20-%20Emerald%20Version%20(USA,%20Europe).png",
+      "sha256": "f39a4d3d7044d2ad693a60f6af362619f7268cd9187c6576f3d4e3373dfa49b5",
+      "bytes": 469902,
+      "cover_keys": [
+        "2d13ca8efbe0f2df0858ad6a",
+        "02b5cb1d1479bc7fa9a4d9ff",
+        "06b7d0e9e2f5b119241bf9e5",
+        "e0c2e50bc8a8bf52d0f00bcc"
+      ]
+    },
+    {
+      "asset_id": "elite_redux",
+      "kind": "community_box_art",
+      "source_page": "https://www.reddit.com/r/PokemonROMhacks/comments/1l3l74c/my_custom_box_art_project_for_some_of_the_most/",
+      "sha256": "2a0b02cbc9c4b343f90af35aa4457db45d4092a3a242fa376024d201dc1f8319",
+      "bytes": 815851,
+      "cover_keys": [
+        "dda89c44e82c12ae221afb86",
+        "9fb6debc3ded770c04871775",
+        "8bd6dfaab8ea05af6e972218"
+      ]
+    },
+    {
+      "asset_id": "emerald_rogue",
+      "kind": "community_box_art",
+      "source_page": "https://www.reddit.com/r/PokemonROMhacks/comments/1l3l74c/my_custom_box_art_project_for_some_of_the_most/",
+      "sha256": "57bfd2ebb381b5936afbe6086ee400696fe56b48a060008f1643cbca3e2029ab",
+      "bytes": 644828,
+      "cover_keys": [
+        "8bcc05ebf8e0dfd6aa0c5f63"
+      ]
+    },
+    {
+      "asset_id": "fire_of_sky",
+      "kind": "exact_title_art",
+      "source_page": "https://www.reddit.com/r/PokemonROMhacks/comments/1p91akw/pok%C3%A9mon_fire_of_sky_box_art/",
+      "sha256": "c7a6e813406f27882ac5c9fe1b23c9c8b26cc4b332224ebba1c1afcf6af57791",
+      "bytes": 558788,
+      "cover_keys": [
+        "6615fb6d6aab0a1bfcca3225"
+      ]
+    },
+    {
+      "asset_id": "glazed",
+      "kind": "community_box_art",
+      "source_page": "https://www.reddit.com/r/PokemonROMhacks/comments/1l3l74c/my_custom_box_art_project_for_some_of_the_most/",
+      "sha256": "e8f8d27b3ed5391860b0024b6fc65cb8e4ad173b683946cabe05d8e41f4679ad",
+      "bytes": 671869,
+      "cover_keys": [
+        "277a53143a5610d1ba4140e3"
+      ]
+    },
+    {
+      "asset_id": "hoenn_last_wish",
+      "kind": "exact_title_art",
+      "source_page": "https://www.pokecommunity.com/threads/pok%C3%A9mon-hoenns-last-wish-version-0-4-7.541242/",
+      "sha256": "2e8138cf122c5eb23da0d74bafd102327d6a60076b9599fcd31191e3c28eee6f",
+      "bytes": 2172594,
+      "cover_keys": [
+        "6357cd2df628951c8dbc1ec2"
+      ]
+    },
+    {
+      "asset_id": "hyper_emerald",
+      "kind": "exact_title_art",
+      "source_page": "https://www.steamgriddb.com/grid/644499",
+      "sha256": "c6862a2fef0a3c5f09a8c3d8c9c070e5e969004223be4dabb33fbb1b5eec2f1e",
+      "bytes": 832369,
+      "cover_keys": [
+        "e57bece336464d301eec0ee8"
+      ]
+    },
+    {
+      "asset_id": "korosu",
+      "kind": "exact_title_art",
+      "source_page": "https://thegamesdb.net/game.php?id=84103",
+      "sha256": "3beaab24c2127845a037327cabc36e1d3f08b60f7e773ce16a37bdf7e847c917",
+      "bytes": 170714,
+      "cover_keys": [
+        "36ebe850afd9dc8289ef99e7"
+      ]
+    },
+    {
+      "asset_id": "leaf_green",
+      "kind": "base_or_native_release_box_art",
+      "source_page": "https://thumbnails.libretro.com/Nintendo%20-%20Game%20Boy%20Advance/Named_Boxarts/Pokemon%20-%20LeafGreen%20Version%20(USA).png",
+      "sha256": "7d73f2d7fecd2b5d2339bdf4d6000d45f20e046951f6e89dd2f73476498bc373",
+      "bytes": 519106,
+      "cover_keys": [
+        "b752583c097606ddc096ecde",
+        "c020609ea51fbf56d9a04069"
+      ]
+    },
+    {
+      "asset_id": "ruby",
+      "kind": "base_or_native_release_box_art",
+      "source_page": "https://thumbnails.libretro.com/Nintendo%20-%20Game%20Boy%20Advance/Named_Boxarts/Pokemon%20-%20Ruby%20Version%20(USA).png",
+      "sha256": "0c264af577ca175f0d73b6766b1100dd4b78d6728bbcfb07298679500f0316e1",
+      "bytes": 455614,
+      "cover_keys": [
+        "4982c2420830877d79aec852"
+      ]
+    },
+    {
+      "asset_id": "amethyst",
+      "kind": "exact_title_art",
+      "source_page": "https://www.reddit.com/r/PokemonROMhacks/comments/1tcvlmt/made_some_impromptu-covers-for-pokemon-amethyst/",
+      "sha256": "2e3765c747bb508512e15e21ecb58cddfa5890fae52655a65cb8f0746ea42bdd",
+      "bytes": 2033569,
+      "cover_keys": [
+        "5fb37c90395148d2dee2d620"
+      ]
+    },
+    {
+      "asset_id": "crestfall",
+      "kind": "exact_title_art",
+      "source_page": "https://www.reddit.com/r/PokemonROMhacks/comments/1wqq76g/made_a_cover_for_pokemon_crestfall/",
+      "sha256": "3e125c7ccbfac39a2b0fcca48c30a1c7f090a81e3f8c674c39a1364b66074796",
+      "bytes": 2649408,
+      "cover_keys": [
+        "8db1078d034373ee3a66364f"
+      ]
+    },
+    {
+      "asset_id": "crown",
+      "kind": "community_box_art",
+      "source_page": "https://www.reddit.com/r/PokemonROMhacks/comments/1l3l74c/my_custom_box_art_project_for_some_of_the_most/",
+      "sha256": "030999ad35e455a3492cf710a6463608d58681540d3a4e2734da1caf87883632",
+      "bytes": 829848,
+      "cover_keys": [
+        "11d51074f32f595e33c6b102"
+      ]
+    },
+    {
+      "asset_id": "dreamstone",
+      "kind": "exact_title_art",
+      "source_page": "https://www.steamgriddb.com/grid/663778",
+      "sha256": "5dadf8a994259329f6e2ec0ceb73561ba432efa59ded325003b42fa81f248ebe",
+      "bytes": 740963,
+      "cover_keys": [
+        "b90d0ccb73e96c853c52e5f7"
+      ]
+    },
+    {
+      "asset_id": "lazarus",
+      "kind": "exact_title_art",
+      "source_page": "https://thegamesdb.net/game.php?id=133252",
+      "sha256": "9d2af6173fafcb1a8b9cda5e96310e17d23b742302126bab34dac0545bc5f6b3",
+      "bytes": 1174435,
+      "cover_keys": [
+        "7ac7618525439d1a087b4413"
+      ]
+    },
+    {
+      "asset_id": "legends_delta",
+      "kind": "exact_title_art",
+      "source_page": "https://www.reddit.com/r/PokemonROMhacks/comments/1xs0667/pokemon_legends_delta_demo_222/",
+      "sha256": "5cb699e94410c121a93975689701b282c3b3c35e58582f7427e1b2272dbfbb5f",
+      "bytes": 438653,
+      "cover_keys": [
+        "1b24dba26aafe0c5d9960a78"
+      ]
+    },
+    {
+      "asset_id": "odyssey",
+      "kind": "community_box_art",
+      "source_page": "https://www.reddit.com/r/PokemonROMhacks/comments/1l3l74c/my_custom_box_art_project_for_some_of_the_most/",
+      "sha256": "14175b23058177016923c53fc3f350fb94062c74072555d10a01614a7d17fa7d",
+      "bytes": 906180,
+      "cover_keys": [
+        "265ec113bcd75dcf558605ed",
+        "4b521ce88d39f92b0eafe4e4"
+      ]
+    },
+    {
+      "asset_id": "psychic_adventures",
+      "kind": "exact_title_art",
+      "source_page": "https://www.romstation.fr/gallery/album/56085-pokemon-psychic-adventure-gameboy-advance/",
+      "sha256": "326ae4af92d8981d439c5c6b28deee067eb9d532a815f751f741583ef0a12aa9",
+      "bytes": 108071,
+      "cover_keys": [
+        "078a47063c9d829c1a85730b"
+      ]
+    },
+    {
+      "asset_id": "rocket_edition",
+      "kind": "community_box_art",
+      "source_page": "https://www.reddit.com/r/PokemonROMhacks/comments/1l3l74c/my_custom_box_art_project_for_some_of_the_most/",
+      "sha256": "1d6046130718d9777b8cd753a4f9bff6439a563e361b8ab5b48e6a0c91839483",
+      "bytes": 699814,
+      "cover_keys": [
+        "09e3a834446cefce053c7708"
+      ]
+    },
+    {
+      "asset_id": "outlaw",
+      "kind": "exact_title_art",
+      "source_page": "https://www.romstation.fr/games/gba/pokemon-outlaw-version-r54409/",
+      "sha256": "b104b44d5f99aa4b3dda82a3a5681e76e6833eed2aa9430b7e393a3061ec3f7d",
+      "bytes": 148468,
+      "cover_keys": [
+        "89fa80cac31d5458cd48d480"
+      ]
+    },
+    {
+      "asset_id": "altair",
+      "kind": "exact_title_art",
+      "source_page": "https://www.romstation.fr/games/gba/pokemon-altair-r46260/",
+      "sha256": "8b490646378bd3b56730829fdbaed8be97e89649bdcea80719ff73a80402a621",
+      "bytes": 113364,
+      "cover_keys": [
+        "28dea311604191ad72eb19ed"
+      ]
+    },
+    {
+      "asset_id": "ceruleum",
+      "kind": "exact_title_art",
+      "source_page": "https://www.reddit.com/r/PokemonROMhacks/comments/1xdc97k/box_art_for_pokemon_ceruleum/",
+      "sha256": "929ad0b5133f3de553b2daba120ddb192eee6390c202ea520bad402b4da14f8f",
+      "bytes": 2570082,
+      "cover_keys": [
+        "5633451be91db617d0d31144"
+      ]
+    },
+    {
+      "asset_id": "crystal_advance",
+      "kind": "community_box_art",
+      "source_page": "https://www.reddit.com/r/PokemonROMhacks/comments/1l3l74c/my_custom_box_art_project_for_some_of_the_most/",
+      "sha256": "818d9db6de7d9f75265979bf748f1b7ab83acf543d77e699fb5ba744c2f50510",
+      "bytes": 661985,
+      "cover_keys": [
+        "06ec32ee3799086bbdfe4aad"
+      ]
+    },
+    {
+      "asset_id": "gaia",
+      "kind": "community_box_art",
+      "source_page": "https://www.reddit.com/r/PokemonROMhacks/comments/1l3l74c/my_custom_box_art_project_for_some_of_the_most/",
+      "sha256": "102a3eddd018b24cd08a04c4b8145723c75a09b9841a8d629032c3f8d85008b1",
+      "bytes": 852301,
+      "cover_keys": [
+        "a36c7706c733fbc954178ffe"
+      ]
+    },
+    {
+      "asset_id": "heart_soul",
+      "kind": "exact_title_art",
+      "source_page": "https://backloggd.com/games/pokemon-heart-and-soul/",
+      "sha256": "297b1ee19ccdea7b598cbaf8fbe756b79f1181fc0c2a463876fb64a440fa5339",
+      "bytes": 86206,
+      "cover_keys": [
+        "fe5e00301af82d108eb76711"
+      ]
+    },
+    {
+      "asset_id": "odyssey_ii",
+      "kind": "exact_title_art",
+      "source_page": "https://retrododo.com/pokemon-odyssey-ii-heroes-of-lemuria-is-officially-in-development/",
+      "sha256": "77e82ca249ab3a853166882e0ad4a518860e6523dcf509cc815691f0f493e075",
+      "bytes": 135903,
+      "cover_keys": [
+        "07b6f1113a5bc203c30bb5a3"
+      ]
+    },
+    {
+      "asset_id": "phoenix_red",
+      "kind": "exact_title_art",
+      "source_page": "https://retrogamesnexus.com/",
+      "sha256": "f6a55ab4982ba33ed0851340939ceffdf1b72028214ea70a218c3fcc2511a998",
+      "bytes": 102569,
+      "cover_keys": [
+        "795b87f80558fdbaf9ce258a"
+      ]
+    },
+    {
+      "asset_id": "unbound",
+      "kind": "community_box_art",
+      "source_page": "https://www.reddit.com/r/PokemonROMhacks/comments/1l3l74c/my_custom_box_art_project_for_some_of_the_most/",
+      "sha256": "e58c25443caca48a1d87fee271a92a563c016dffe59dbdf61e74247068febaae",
+      "bytes": 900829,
+      "cover_keys": [
+        "672b5e08d23e253b15869310"
+      ]
+    },
+    {
+      "asset_id": "valiant",
+      "kind": "exact_title_art",
+      "source_page": "https://thegamesdb.net/game.php?id=130338",
+      "sha256": "e7bc103591f2ea4d63ef5ed533798058b6f5bb81a5ec6133638c76ef3acd4739",
+      "bytes": 1320008,
+      "cover_keys": [
+        "04f5a397562e4a54a149dc23"
+      ]
+    },
+    {
+      "asset_id": "vega",
+      "kind": "exact_title_art",
+      "source_page": "https://gamesdb.launchbox-app.com/games/images/78842-pokmon-vega",
+      "sha256": "375223b0b85704653f95747dfd87b37db79e84a34625ad0be5e00e2b6f8cfd4d",
+      "bytes": 120759,
+      "cover_keys": [
+        "b9a9713d883d5d4e168420d7"
+      ]
+    },
+    {
+      "asset_id": "petalburg_dynasty",
+      "kind": "title_screen_art_no_box_art_found",
+      "source_page": "https://romhackguides.com/hacks/petalburg-dynasty/",
+      "sha256": "a1563552f2c2b6207d4e716525c420bc5450fa9750610d9cb6a60bd091612b01",
+      "bytes": 15116,
+      "cover_keys": [
+        "723bcc5b0f933eca53e45d21"
+      ]
+    },
+    {
+      "asset_id": "soulgold",
+      "kind": "exact_title_art",
+      "source_page": "https://pokemonsoulgold.com/box-art/",
+      "sha256": "0facc1e6b79add8a3e6eef3d5b4834b04b2a1d990b7acac22df4452c6e8188d4",
+      "bytes": 217836,
+      "cover_keys": [
+        "89d99d54d3a9325da5b0b128",
+        "c385fd3b0e0d612f390515d8",
+        "2be58f0401a9c2c90ba79b58"
+      ]
+    },
+    {
+      "asset_id": "wishes_of_tomorrow",
+      "kind": "fan_box_art",
+      "source_page": "https://gamesdb.launchbox-app.com/games/details/446842-pokmon-wishes-of-tomorrow/",
+      "sha256": "a3186398e88c467909a46c6eef31d742deef470ac3c60ca9ba8da51da7284615",
+      "bytes": 52845,
+      "cover_keys": [
+        "5d32066880b65c54cfe32f8d"
+      ]
+    },
+    {
+      "asset_id": "astral_red",
+      "kind": "community_box_art",
+      "source_page": "https://www.reddit.com/r/PokemonROMhacks/comments/1l3l74c/my_custom_box_art_project_for_some_of_the_most/",
+      "sha256": "a7e4bce06a38b01c2662e7bc043be000906d905909d96f12852e2babf0e3cc60",
+      "bytes": 673680,
+      "cover_keys": [
+        "9fdac7c57c2cbeb1b04a2b6d",
+        "146c6dde87586b1200589f19"
+      ]
+    },
+    {
+      "asset_id": "monomyth",
+      "kind": "exact_title_art",
+      "source_page": "https://pokemonmonomyth.org/box-art/",
+      "sha256": "5825311af9c423e86873eb99a9c36c63d031ba80bc1710dd1b20624f162d2eb2",
+      "bytes": 357352,
+      "cover_keys": [
+        "23948246e3ab660cde46b9c7"
+      ]
+    },
+    {
+      "asset_id": "pisces",
+      "kind": "community_box_art",
+      "source_page": "https://www.reddit.com/r/PokemonROMhacks/comments/1l3l74c/my_custom_box_art_project_for_some_of_the_most/",
+      "sha256": "d75c20f96b7360610512f997812dff3b64cf24d266f326dd0666cb1c89c03c02",
+      "bytes": 745731,
+      "cover_keys": [
+        "2f45101cb4dde8478bd1e626"
+      ]
+    }
+  ],
+  "install_verification": {
+    "source_image_decode_validation": "52/52 passed with Pillow image verification",
+    "device_sha256_match": "52/52 installed files match the selected source-image hashes",
+    "partial_files": 0,
+    "stale_missing_markers": 0,
+    "existing_autofetch_png_preserved": 2,
+    "roms_modified": false,
+    "saves_modified": false,
+    "repository_apk_source_modified": false,
+    "media_committed_to_repository": false,
+    "ui_visual_check": "not performed"
+  },
+  "matching_notes": [
+    "Three ROM entries without matching title-specific online box art use Pokémon Emerald base-game artwork as a fallback.",
+    "Pokémon Petalburg Dynasty uses a title-screen image because a box-art source was not found.",
+    "The installed covers are in the private custom-cover directory of the package that currently holds the 52-entry ROM library.",
+    "Version 0.3.1 is installed as com.animus.romshelf.launcher with separate app data; this installation does not seed that separate package."
+  ],
+  "installed_cover_keys": [
+    "0233d542d4164e2c74f8d091",
+    "02b5cb1d1479bc7fa9a4d9ff",
+    "04f5a397562e4a54a149dc23",
+    "06b7d0e9e2f5b119241bf9e5",
+    "06ec32ee3799086bbdfe4aad",
+    "078a47063c9d829c1a85730b",
+    "07b6f1113a5bc203c30bb5a3",
+    "09e3a834446cefce053c7708",
+    "11d51074f32f595e33c6b102",
+    "146c6dde87586b1200589f19",
+    "1847ca0061732a7bc38ab2ac",
+    "1b24dba26aafe0c5d9960a78",
+    "23948246e3ab660cde46b9c7",
+    "265ec113bcd75dcf558605ed",
+    "2671b16f2dfae685bc00b61e",
+    "277a53143a5610d1ba4140e3",
+    "28dea311604191ad72eb19ed",
+    "2be58f0401a9c2c90ba79b58",
+    "2d13ca8efbe0f2df0858ad6a",
+    "2f45101cb4dde8478bd1e626",
+    "36ebe850afd9dc8289ef99e7",
+    "4982c2420830877d79aec852",
+    "4b521ce88d39f92b0eafe4e4",
+    "5633451be91db617d0d31144",
+    "5d32066880b65c54cfe32f8d",
+    "5fb37c90395148d2dee2d620",
+    "6357cd2df628951c8dbc1ec2",
+    "6615fb6d6aab0a1bfcca3225",
+    "672b5e08d23e253b15869310",
+    "723bcc5b0f933eca53e45d21",
+    "795b87f80558fdbaf9ce258a",
+    "7ac7618525439d1a087b4413",
+    "89d99d54d3a9325da5b0b128",
+    "89fa80cac31d5458cd48d480",
+    "8bcc05ebf8e0dfd6aa0c5f63",
+    "8bd6dfaab8ea05af6e972218",
+    "8db1078d034373ee3a66364f",
+    "9fb6debc3ded770c04871775",
+    "9fdac7c57c2cbeb1b04a2b6d",
+    "a36c7706c733fbc954178ffe",
+    "a58f7090ee12db9462c8b4b8",
+    "a8564e3745ef59d6dd5eff2c",
+    "b752583c097606ddc096ecde",
+    "b90d0ccb73e96c853c52e5f7",
+    "b9a9713d883d5d4e168420d7",
+    "c020609ea51fbf56d9a04069",
+    "c385fd3b0e0d612f390515d8",
+    "dda89c44e82c12ae221afb86",
+    "e0c2e50bc8a8bf52d0f00bcc",
+    "e57bece336464d301eec0ee8",
+    "f347d348bb4a5f5cf731ad13",
+    "fe5e00301af82d108eb76711"
+  ]
+}

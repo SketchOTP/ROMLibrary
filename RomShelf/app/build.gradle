@@ -7,8 +7,8 @@ android {
         applicationId 'com.animus.romshelf.launcher'
         minSdk 26
         targetSdk 35
-        versionCode 4
-        versionName '0.3.1'
+        versionCode 9
+        versionName '0.3.6'
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17

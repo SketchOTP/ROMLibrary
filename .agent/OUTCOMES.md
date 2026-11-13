@@ -225,3 +225,87 @@ SUPERSEDES: none
 EVIDENCE: .authority/setup/setup-20261113T135057Z/coverage.json; .authority/setup/setup-20261113T135057Z/rom-shelf-device.json
 SUMMARY: The code and signed update are published and installed. Full product acceptance remains partial because emulator launch, save pickup, and controlled SAF workflows were not tested.
 NEXT: Continue acceptance using owner-controlled disposable ROM and save fixtures.
+
+## A6-WORKER-ROM-SHELF-COVERS-20261113 — WORKER_REPORT
+
+ENTRY_ID: A6-WORKER-ROM-SHELF-COVERS-20261113
+UTC: 2026-11-13T17:16:29Z
+ACTOR: Codex
+TYPE: WORKER_REPORT
+GOAL: A6-GOAL-ROM-SHELF-20261113
+TASK: D-ROM-SHELF-COVERS-20261113
+STATUS: REPORTED
+SUPERSEDES: none
+EVIDENCE: .authority/setup/rom-shelf-covers-20261113/manifest.json; RomShelf/app/src/main/java/com/animus/romshelf/CoverLoader.java
+SUMMARY: Sourced 38 distinct images and mapped them to the 52 ROM document keys. Installed the images atomically into the existing package's custom-cover directory and removed only their stale cover-fetch failure markers. Two previous auto-fetched PNG files were preserved. Three hack entries use Emerald base-game artwork as a fallback, and Petalburg Dynasty uses its title screen because no box-art image was located. No ROM, save, source, APK, or artwork media was modified in the repository.
+NEXT: Visually verify the existing library after the phone is unlocked; separately seed the 0.3.1 package if it becomes the active library.
+
+## A6-VERIFIER-ROM-SHELF-COVERS-20261113 — VERIFICATION
+
+ENTRY_ID: A6-VERIFIER-ROM-SHELF-COVERS-20261113
+UTC: 2026-11-13T17:16:29Z
+ACTOR: Codex
+TYPE: VERIFICATION
+GOAL: A6-GOAL-ROM-SHELF-20261113
+TASK: D-ROM-SHELF-COVERS-20261113
+STATUS: PARTIAL
+SUPERSEDES: none
+EVIDENCE: .authority/setup/rom-shelf-covers-20261113/manifest.json
+SUMMARY: All 52 source images passed local image decoding; all 52 private app files have matching device-side SHA-256 digests. The app contains 52 custom .img files, zero partial writes, zero stale .missing markers, and the two pre-existing auto-fetch PNGs remain. ROM and save content was not changed. No visual UI check was performed.
+NEXT: Confirm rendering in the ROM Shelf screen after unlocking the phone; do not claim visual acceptance before that observation.
+
+## A6-CONDUCTOR-ROM-SHELF-COVERS-20261113 — CONDUCTOR_DISPOSITION
+
+ENTRY_ID: A6-CONDUCTOR-ROM-SHELF-COVERS-20261113
+UTC: 2026-11-13T17:16:29Z
+ACTOR: Codex
+TYPE: CONDUCTOR_DISPOSITION
+GOAL: A6-GOAL-ROM-SHELF-20261113
+TASK: D-ROM-SHELF-COVERS-20261113
+STATUS: PARTIAL
+SUPERSEDES: none
+EVIDENCE: .authority/setup/rom-shelf-covers-20261113/manifest.json; .agent/CURRENT.md
+SUMMARY: Cover loading is complete for the package and ROM folder that already held the user's library. Visual confirmation remains open, and 0.3.1 is a separate package with separate app data, so this receipt does not claim those covers appear in that package.
+NEXT: Open the existing library and confirm visible covers when the device is available; handle the 0.3.1 package separately if the user intends that package to be the active library.
+
+## A6-WORKER-ROM-SHELF-036-20261113 — WORKER_REPORT
+
+ENTRY_ID: A6-WORKER-ROM-SHELF-036-20261113
+UTC: 2026-11-13T19:09:56Z
+ACTOR: authority-cli
+TYPE: WORKER_REPORT
+GOAL: see .agent/GOAL.md
+TASK: see .agent/CURRENT.md
+STATUS: REPORTED
+SUPERSEDES: none
+EVIDENCE: .authority/setup/rom-shelf-release-0.3.6-20261113.json; RomShelf/README.md; RomShelf/PROJECT_HANDOFF.md
+SUMMARY: Prepared ROM Shelf 0.3.6 with a single canonical John GBA / Pizza Boy battery-save folder, one app-wide Pizza Boy version for every game, removed per-game emulator overrides and AI resolver, simplified Settings, retained the John GBA application/data, added Eastern-time save labels and a launch-session Pizza screenshot cache, and preserved the existing cover manifest and earlier APK artifacts.
+NEXT: Install and verify after the Pixel reconnects; check Monomyth save freshness and screenshot output without changing saves.
+
+## A6-VERIFIER-ROM-SHELF-036-20261113 — VERIFICATION
+
+ENTRY_ID: A6-VERIFIER-ROM-SHELF-036-20261113
+UTC: 2026-11-13T19:09:56Z
+ACTOR: authority-cli
+TYPE: VERIFICATION
+GOAL: see .agent/GOAL.md
+TASK: see .agent/CURRENT.md
+STATUS: PARTIAL
+SUPERSEDES: none
+EVIDENCE: .authority/setup/rom-shelf-release-0.3.6-20261113.json; artifacts/rom-shelf/apk/ROM-Shelf-0.3.6.apk
+SUMMARY: Seven JVM unit tests passed with zero failures; release assembly and lint vital passed; zipalign verification passed; APK package/version is com.animus.romshelf.launcher 0.3.6/versionCode 9; signer SHA-256 matches the owner-provided certificate. Device acceptance is pending because only the Samsung tablet is connected.
+NEXT: On Pixel reconnect, inspect live saves and Pizza screenshots, install as an update, and verify launch/save/UI behavior.
+
+## A6-CONDUCTOR-ROM-SHELF-036-20261113 — CONDUCTOR_DISPOSITION
+
+ENTRY_ID: A6-CONDUCTOR-ROM-SHELF-036-20261113
+UTC: 2026-11-13T19:09:56Z
+ACTOR: authority-cli
+TYPE: CONDUCTOR_DISPOSITION
+GOAL: see .agent/GOAL.md
+TASK: see .agent/CURRENT.md
+STATUS: PARTIAL
+SUPERSEDES: none
+EVIDENCE: .agent/CURRENT.md; .authority/setup/rom-shelf-release-0.3.6-20261113.json
+SUMMARY: The signed 0.3.6 source and APK are prepared; prior merge/launch evidence remains valid. The Monomyth freshness check and install-on-device acceptance are not claimed until the Pixel reconnects.
+NEXT: Resume live Pixel acceptance when the phone is visible over ADB.

@@ -1,0 +1,41 @@
+{
+  "recorded_at_utc": "2026-11-13T19:09:16Z",
+  "release": {
+    "version_name": "0.3.6",
+    "version_code": 9,
+    "application_id": "com.animus.romshelf.launcher",
+    "apk": "artifacts/rom-shelf/apk/ROM-Shelf-0.3.6.apk",
+    "apk_sha256": "30f7fcefcd76fa1e373c4ece779eba9472417a798d3b24f04da62d0e45599a5f",
+    "bytes": 1117818,
+    "zipalign_check": "passed",
+    "apksigner_certificate_sha256": "b094cd94d6975c3c62c467658d38523091c638068b9fb3b06d0d2998a19d2456"
+  },
+  "build": {
+    "command": "./gradlew testDebugUnitTest assembleRelease",
+    "status": "passed",
+    "unit_test_counts": {
+      "suites": 1,
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "release_lint_vital": "passed"
+  },
+  "implementation": {
+    "launch_target": "Pizza Boy family only; one app-wide version for all games",
+    "save_location": "one canonical John GBA / Pizza Boy shared folder; previous per-emulator URI settings are treated as legacy fallbacks",
+    "ai": "OAuth and AI resolver removed; legacy local credentials and URL preference keys cleared at app start",
+    "save_time_display": "America/New_York timestamp under each title",
+    "screenshots": "Pizza Boy timestamped screenshot from current launch session cached per game; source folder must be selected"
+  },
+  "device": {
+    "adb_state": "Pixel disconnected; only Samsung tablet R52RB00LVPF visible; tablet was not touched",
+    "pending": [
+      "compare live Monomyth .sav timestamp against every shared and inactive Pizza Boy save",
+      "verify Pizza Boy screenshot output folder on device",
+      "install 0.3.6 over the existing signed app without clearing data",
+      "verify settings, launch, shared-save pickup, screenshot cache, and Eastern-time label"
+    ]
+  }
+}

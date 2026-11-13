@@ -19,15 +19,22 @@ import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.nio.file.Files;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.text.Normalizer;
+import java.text.SimpleDateFormat;
+import androidx.documentfile.provider.DocumentFile;
 
 final class CoverLoader {
     private static final String BASE = "https://thumbnails.libretro.com/Nintendo%20-%20Game%20Boy%20Advance/Named_Boxarts/";
@@ -38,6 +45,11 @@ final class CoverLoader {
     private final Handler main = new Handler(Looper.getMainLooper());
     private final File cached;
     private final File custom;
+    private final File legacyCustom;
+    private final Object stateIndexLock = new Object();
+    private Map<String, DocumentFile> stateIndex = Collections.emptyMap();
+    private String stateIndexUri = "";
+    private long stateIndexAt;
     private List<String> catalog;
     private long attemptedCatalog;
 
@@ -45,33 +57,49 @@ final class CoverLoader {
         context = c.getApplicationContext();
         prefs = c.getSharedPreferences("rom_shelf_covers", Context.MODE_PRIVATE);
         cached = new File(c.getFilesDir(), "covers/autofetch");
-        custom = new File(c.getFilesDir(), "covers/custom");
+        File externalCovers = c.getExternalFilesDir("covers");
+        custom = new File(externalCovers == null ? new File(c.getFilesDir(), "covers") : externalCovers, "custom");
+        legacyCustom = new File(c.getFilesDir(), "covers/custom");
         cached.mkdirs(); custom.mkdirs();
     }
 
     void show(Game game, ImageView image) {
         final String tag = game.key;
         image.setTag(tag);
-        File manual = new File(custom, tag + ".img");
+        File screenshot = new File(cached, tag + ".state.img");
+        File manual = customFile(tag);
         File auto = new File(cached, tag + ".png");
-        File file = manual.isFile() ? manual : auto;
+        boolean useScreenshots = screenshotsEnabled();
+        File file = useScreenshots && screenshot.isFile() ? screenshot : (manual.isFile() ? manual : auto);
         if (file.isFile()) {
             Bitmap bitmap = readScaled(file);
-            if (bitmap != null) { image.setImageBitmap(bitmap); return; }
+            if (bitmap != null) {
+                image.setImageBitmap(bitmap);
+                if (!useScreenshots) return;
+            }
         }
         File failed = new File(cached, tag + ".missing");
-        if (failed.exists() && System.currentTimeMillis() - failed.lastModified() < 12L * 3600 * 1000) return;
+        if (!useScreenshots && failed.exists() && System.currentTimeMillis() - failed.lastModified() < 12L * 3600 * 1000) return;
         workers.execute(() -> {
+            if (useScreenshots) {
+                File latest = loadLatestScreenshot(game);
+                Bitmap stateBitmap = latest == null ? null : readScaled(latest);
+                if (stateBitmap != null) {
+                    main.post(() -> {
+                        if (tag.equals(image.getTag()) && image.isAttachedToWindow()) image.setImageBitmap(stateBitmap);
+                    });
+                    return;
+                }
+                // Keep existing manual or downloaded cover art when no matching
+                // state image exists; only fetch art when there is no fallback.
+                if (manual.isFile() || auto.isFile() || screenshot.isFile()) return;
+            }
             File target = new File(cached, tag + ".png");
             boolean ok = target.isFile();
             if (!ok) {
-                String url = prefs.getString("url_" + tag, null);
-                if (url != null) ok = download(url, target);
-                if (!ok) {
-                    Set<String> names = new LinkedHashSet<>(Arrays.asList(game.stem, game.title, game.title + " (USA)", game.title + " (USA, Europe)", game.title + " (Europe)", game.title + " (Japan)"));
-                    for (String s : names) {
-                        if (download(BASE + urlName(s + ".png"), target)) { ok = true; break; }
-                    }
+                Set<String> names = new LinkedHashSet<>(Arrays.asList(game.stem, game.title, game.title + " (USA)", game.title + " (USA, Europe)", game.title + " (Europe)", game.title + " (Japan)"));
+                for (String s : names) {
+                    if (download(BASE + urlName(s + ".png"), target)) { ok = true; break; }
                 }
                 if (!ok) {
                     String match = bestCatalogFile(game.title, game.stem);
@@ -90,42 +118,180 @@ final class CoverLoader {
         });
     }
 
-    void setAiImage(Game game, String imageUrl, String website) {
-        if (!ArtworkUrlPolicy.isAllowedImageUrl(imageUrl)) return;
-        prefs.edit().putString("url_" + game.key, imageUrl).putString("source_" + game.key,
-            ArtworkUrlPolicy.isAllowedSourceUrl(website) ? website : "").apply();
-        new File(cached, game.key + ".png").delete();
-        new File(cached, game.key + ".missing").delete();
-    }
-
-    void clearAiImage(Game game) {
-        prefs.edit().remove("url_" + game.key).remove("source_" + game.key).apply();
-        invalidate(game);
+    void clearLegacyAiState() {
+        SharedPreferences.Editor edit = prefs.edit();
+        for (String key : prefs.getAll().keySet()) {
+            if (key.startsWith("url_") || key.startsWith("source_")) edit.remove(key);
+        }
+        edit.apply();
     }
 
     void migrateIdentity(Game game) {
         for (String oldKey : game.legacyKeys) {
             if (oldKey.equals(game.key)) continue;
-            copyPreference("url_" + oldKey, "url_" + game.key);
-            copyPreference("source_" + oldKey, "source_" + game.key);
             copyFile(new File(cached, oldKey + ".png"), new File(cached, game.key + ".png"));
             copyFile(new File(cached, oldKey + ".missing"), new File(cached, game.key + ".missing"));
-            copyFile(new File(custom, oldKey + ".img"), new File(custom, game.key + ".img"));
+            copyFile(customFile(oldKey), new File(custom, game.key + ".img"));
+            copyFile(new File(legacyCustom, oldKey + ".img"), new File(custom, game.key + ".img"));
         }
     }
 
-    private void copyPreference(String from, String to) {
-        if (prefs.contains(to)) return;
-        String value = prefs.getString(from, null);
-        if (value != null) prefs.edit().putString(to, value).apply();
+    private File customFile(String key) {
+        File current = new File(custom, key + ".img");
+        return current.isFile() ? current : new File(legacyCustom, key + ".img");
+    }
+
+    boolean screenshotsEnabled() {
+        return prefs.getBoolean("use_state_screenshots", false);
+    }
+
+    void setScreenshotsEnabled(boolean enabled) {
+        prefs.edit().putBoolean("use_state_screenshots", enabled).apply();
+        clearScreenshotCache();
+    }
+
+    Uri screenshotFolder() {
+        String value = prefs.getString("state_screenshot_folder", null);
+        return value == null ? null : Uri.parse(value);
+    }
+
+    void setScreenshotFolder(Uri uri) {
+        prefs.edit().putString("state_screenshot_folder", uri.toString()).apply();
+        invalidateScreenshotIndex();
+        clearScreenshotCache();
+    }
+
+    void invalidateScreenshotIndex() {
+        synchronized (stateIndexLock) {
+            stateIndex = Collections.emptyMap();
+            stateIndexUri = "";
+            stateIndexAt = 0;
+        }
+    }
+
+    private void clearScreenshotCache() {
+        File[] files = cached.listFiles((dir, name) -> name.endsWith(".state.img"));
+        if (files != null) for (File file : files) file.delete();
+    }
+
+    private File loadLatestScreenshot(Game game) {
+        Uri rootUri = screenshotFolder();
+        if (rootUri == null) return null;
+        DocumentFile root = DocumentFile.fromTreeUri(context, rootUri);
+        if (root == null || !root.isDirectory()) return null;
+        Map<String, DocumentFile> index = screenshotIndex(rootUri, root);
+        DocumentFile best = null;
+        for (String stem : game.saveStems) {
+            DocumentFile candidate = index.get(normalizeStateStem(stem));
+            if (candidate != null && (best == null || screenshotModified(candidate) > screenshotModified(best))) best = candidate;
+        }
+        if (best == null) return null;
+
+        File target = copyScreenshot(game, rootUri, best);
+        return target != null && target.isFile() ? target : null;
+    }
+
+    boolean captureLatestPizzaScreenshot(Game game, long launchedAt) {
+        if (!screenshotsEnabled() || launchedAt <= 0) return false;
+        Uri rootUri = screenshotFolder();
+        if (rootUri == null) return false;
+        DocumentFile root = DocumentFile.fromTreeUri(context, rootUri);
+        if (root == null || !root.isDirectory()) return false;
+        Map<String, DocumentFile> index = screenshotIndex(rootUri, root);
+        DocumentFile best = null;
+        for (DocumentFile item : index.values()) {
+            String name = item.getName();
+            if (!isPizzaBoyScreenshot(name) || screenshotModified(item) < launchedAt) continue;
+            if (best == null || screenshotModified(item) > screenshotModified(best)) best = item;
+        }
+        if (best == null) return false;
+        File target = copyScreenshot(game, rootUri, best);
+        return target != null && target.isFile();
+    }
+
+    private File copyScreenshot(Game game, Uri rootUri, DocumentFile best) {
+        long modified = screenshotModified(best);
+
+        File target = new File(cached, game.key + ".state.img");
+        String signature = rootUri + "|" + best.getUri() + "|" + modified + "|" + best.length();
+        String signatureKey = "state_signature_" + game.key;
+        if (target.isFile() && signature.equals(prefs.getString(signatureKey, ""))) return target;
+        if (best.length() > 8L * 1024 * 1024) return null;
+        try (InputStream in = context.getContentResolver().openInputStream(best.getUri())) {
+            if (in == null) return null;
+            byte[] bytes = readLimited(in, 8 * 1024 * 1024);
+            if (BitmapFactory.decodeByteArray(bytes, 0, bytes.length) == null) return null;
+            AtomicCoverFile.replaceFrom(new java.io.ByteArrayInputStream(bytes), target, 8 * 1024 * 1024,
+                candidate -> readScaled(candidate) != null);
+            prefs.edit().putString(signatureKey, signature).apply();
+            return target.isFile() ? target : null;
+        } catch (Exception ignored) { return null; }
+    }
+
+    private static boolean isPizzaBoyScreenshot(String name) {
+        return name != null && Pattern.compile("(?i)^screenshot_\\d{14}\\.(?:jpe?g|png|webp)$").matcher(name).matches();
+    }
+
+    private static long screenshotModified(DocumentFile file) {
+        long modified = file.lastModified();
+        String name = file.getName();
+        if (!isPizzaBoyScreenshot(name)) return modified;
+        try {
+            Date captured = new SimpleDateFormat("'screenshot_'yyyyMMddHHmmss", Locale.US).parse(name.substring(0, name.lastIndexOf('.')));
+            if (captured != null) modified = Math.max(modified, captured.getTime());
+        } catch (Exception ignored) { }
+        return modified;
+    }
+
+    private Map<String, DocumentFile> screenshotIndex(Uri rootUri, DocumentFile root) {
+        String uri = rootUri.toString();
+        synchronized (stateIndexLock) {
+            if (uri.equals(stateIndexUri) && System.currentTimeMillis() - stateIndexAt < 10000) return stateIndex;
+            Map<String, DocumentFile> found = new HashMap<>();
+            walkScreenshots(root, found, 0, new int[] {0});
+            stateIndex = found;
+            stateIndexUri = uri;
+            stateIndexAt = System.currentTimeMillis();
+            return stateIndex;
+        }
+    }
+
+    private void walkScreenshots(DocumentFile directory, Map<String, DocumentFile> found, int depth, int[] count) {
+        if (depth > 6 || count[0] > 5000) return;
+        for (DocumentFile item : directory.listFiles()) {
+            if (++count[0] > 5000) return;
+            if (item.isDirectory()) {
+                walkScreenshots(item, found, depth + 1, count);
+                continue;
+            }
+            String name = item.getName();
+            String stem = screenshotStem(name);
+            if (stem == null) continue;
+            DocumentFile previous = found.get(stem);
+            if (previous == null || item.lastModified() > previous.lastModified()) found.put(stem, item);
+        }
+    }
+
+    private static String screenshotStem(String name) {
+        if (name == null) return null;
+        String lower = name.toLowerCase(Locale.ROOT);
+        Matcher matcher = Pattern.compile("\\.(?:js\\d+|jsa|jpe?g|png|webp)$", Pattern.CASE_INSENSITIVE).matcher(lower);
+        if (!matcher.find()) return null;
+        String stem = lower.substring(0, matcher.start())
+            .replaceFirst("(?i)\\.(?:gba|zip)$", "")
+            .replaceFirst("(?i)\\.(?:js\\d+|jsa)$", "");
+        return normalizeStateStem(stem);
+    }
+
+    private static String normalizeStateStem(String value) {
+        return Normalizer.normalize(value, Normalizer.Form.NFD).replaceAll("\\p{M}+", "")
+            .toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9]", "");
     }
 
     private static void copyFile(File from, File to) {
         if (!from.isFile() || to.exists()) return;
         try { Files.copy(from.toPath(), to.toPath()); } catch (Exception ignored) { }
     }
-
-    String sourceFor(Game game) { return prefs.getString("source_" + game.key, ""); }
 
     void invalidate(Game game) {
         new File(cached, game.key + ".png").delete();
@@ -275,5 +441,8 @@ final class CoverLoader {
         if (in == null) throw new IllegalStateException("Image could not be opened");
         AtomicCoverFile.replaceFrom(in, selected, 10 * 1024 * 1024, file -> readScaled(file) != null);
     }
-    boolean removeCustom(Game game) { return new File(custom, game.key + ".img").delete(); }
+    boolean removeCustom(Game game) {
+        boolean removed = new File(custom, game.key + ".img").delete();
+        return new File(legacyCustom, game.key + ".img").delete() || removed;
+    }
 }

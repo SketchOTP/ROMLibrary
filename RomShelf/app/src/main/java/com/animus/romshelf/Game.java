@@ -17,10 +17,6 @@ final class Game {
     String key;
     final List<String> legacyKeys = new ArrayList<>();
     final List<String> saveStems = new ArrayList<>();
-    DocumentFile johnSave;
-    DocumentFile pizzaSave;
-    long johnStamp;
-    long pizzaStamp;
     DocumentFile sharedSave;
     long sharedStamp;
     String fingerprint;
@@ -73,12 +69,6 @@ final class Game {
         for (String oldKey : other.legacyKeys) if (!legacyKeys.contains(oldKey)) legacyKeys.add(oldKey);
         for (String s : other.saveStems) if (!saveStems.contains(s)) saveStems.add(s);
         if (other.sharedSave != null && (sharedSave == null || other.sharedStamp > sharedStamp)) { sharedSave = other.sharedSave; sharedStamp = other.sharedStamp; }
-        if (other.johnSave != null && (johnSave == null || other.johnStamp > johnStamp)) {
-            johnSave = other.johnSave; johnStamp = other.johnStamp;
-        }
-        if (other.pizzaSave != null && (pizzaSave == null || other.pizzaStamp > pizzaStamp)) {
-            pizzaSave = other.pizzaSave; pizzaStamp = other.pizzaStamp;
-        }
     }
 
     void setFingerprint(String digest) {
@@ -97,9 +87,8 @@ final class Game {
         return copy;
     }
 
-    long lastPlayedEstimate() { return Math.max(sharedStamp, Math.max(johnStamp, pizzaStamp)); }
-    String latestSide() { return johnStamp >= pizzaStamp ? "John GBA" : "Pizza Boy"; }
-    String saveStatus() { return sharedSave != null || johnSave != null || pizzaSave != null ? "SAVED" : "NO SAVE"; }
+    long lastPlayedEstimate() { return sharedStamp; }
+    String saveStatus() { return sharedSave != null ? "SAVED" : "NO SAVE"; }
     String nameForSave() { return stem + ".sav"; }
     String keyForSave() { return stem.toLowerCase(Locale.ROOT); }
 }

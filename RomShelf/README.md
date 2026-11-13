@@ -1,40 +1,36 @@
-# ROM Shelf 0.3.1 — Unified GBA launcher
+# ROM Shelf 0.3.6 — GBA library
 
-A native Android ROM-cover library built with Java and AndroidX DocumentFile. It does not include or download games.
+ROM Shelf is a native Android library for organizing games the owner already has. It scans user-selected `.gba` and `.zip` folders, shows a cover grid, hides exact-content duplicates without deleting ROMs, tracks battery-save files, and launches games through Pizza Boy.
 
-## Core 0.3.0 features
+## Current behavior
 
-- **Three selectable `.sav` folders**: a shared location, John GBA, and Pizza Boy. ROM Shelf scans each selected tree, shows saves separately, and offers folder-specific export, import, backup, and restore. Save modification times estimate activity; they are not play telemetry. Android may block emulator-private folders, and save states are not compatible battery saves.
-- **Tap cover to launch** using a remembered per-game emulator preference, or configured global default; **long press** for emulator choice, artwork, title, save export/import, and details. Supports candidate package IDs for John GBA/Lite and Pizza Boy GBA/Free. Launch uses a SAF `content://` URI with read grant and `ACTION_VIEW`; **some emulator versions may reject it or may open without loading**. This requires device tests; neither emulator's loading behavior is under ROM Shelf control.
-- **ChatGPT OAuth** using OpenAI's documented open-source dynamic-client browser flow (`dynamic_agent_client`, PKCE S256, loopback callback, verified OIDC ID token with JWKS, scoped plan consent, encrypted AES-GCM Android Keystore storage, token refresh, disconnect/revoke). Does not read or copy Codex CLI `auth.json` or ask for a user's ChatGPT password. The official flow is documented for supported open-source clients, and an individual private APK's eligibility cannot be guaranteed. AI is optional. The user's plan controls usage/credits.
-- AI requests comply with ChatGPT plan OAuth inference (`store:false`, `stream:true`, available model discovery), and request web search when permitted to research names/art. Generated title metadata is cached; original filenames remain unchanged. Artwork also falls back to Libretro's catalog or manual selection.
-- SHA-256 content-based deduplication without deleting files; thumbnails and metadata cached locally.
-- **Installation/signature:** 0.1.0 and 0.2.0 had different CI debug-signing certificates, preventing updates. 0.3.0 changes the Android application ID to `com.animus.romshelf.launcher`, avoiding collision and initially installing **alongside** old versions. From 0.3.0 onward, use the private signing key generated once and backed up separately; do not rebuild or redistribute using new debug keys if you intend in-place upgrades.
+- Artwork comes from manually installed/imported covers, the Libretro GBA box-art catalog, or the optional latest-screenshot feature. Screenshot images are copied into ROM Shelf's own cache and matched to ROM filenames. If no screenshot matches, the existing cover remains.
+- The screenshot folder is selected through Android's document picker. Inspection of the installed Pizza Boy GBA Pro 3.9.2 APK shows its screenshot handler writes timestamp-named JPEGs under `Pictures/Pizza Boy A Screenshots`; the Pixel's live folder/files still need confirmation after reconnect. ROM Shelf records which game it launched and associates the newest Pizza Boy screenshot created in that session when the user returns, then copies it to ROM Shelf's per-game cache. Take the screenshot after reaching the save point you want shown. John-style `.js0` / `.jsa` previews with ROM-matching filenames are also supported. Manual import is available if no matching screenshot exists.
+- Battery saves stay in one shared folder. The Pixel's selected folder is `/storage/emulated/0/Johnemulators/GBA/save`; Pizza Boy GBA Pro is configured to use that same folder. ROM Shelf now scans and edits that one canonical folder, even when an older install stored separate John or Pizza folder choices. John GBA remains installed with its data and files, but ROM Shelf no longer offers it as a launcher.
+- Pizza Boy Pro is preferred. If it is absent, ROM Shelf offers the installed Pizza Boy GBA or Free app. Every game uses the same app-wide Pizza Boy version; legacy per-game emulator choices are cleared.
+- The date under each game title is the battery `.sav` file's last-modified time in Eastern Time. It estimates save activity; it is not proof of when a game was opened.
+- ChatGPT sign-in and AI matching have been removed. On startup, the app clears the old local ChatGPT token preferences/keystore alias and AI URL references. Cached covers and saved game titles are preserved. Internet permission remains for online cover-art downloads.
+
+## Pixel evidence
+
+On 2026-11-13, ROM Shelf 0.3.5 was installed over the same signed package without clearing its app data. A grid tap opened Pizza Boy GBA Pro 3.9.2; Pizza's log showed it loading **Pokémon Legends Delta** and reading its battery save through the John GBA `GBA/save` document tree. The 0.3.6 APK adds Pizza-only launching, one canonical save folder, a simpler menu, Eastern-time timestamps, and launch-session screenshot association. It is built and signed but awaits the Pixel reconnect for installation and verification.
+
+Before that launch test, 33 unique nonempty `.sav` files were verified in the shared folder. Duplicate-name collisions were resolved by retaining the newest source; two collision winners came from Pizza Boy. One empty placeholder was excluded. John's `.sav0` recovery sidecars and emulator save-state files were retained. A fresh on-device timestamp check for the owner's Monomyth save is still pending.
 
 ## Setup
-1. Install the signed 0.3.1 update. In Settings, choose the folder with `.gba`/`.zip` ROMs and any accessible shared, John GBA, or Pizza Boy `.sav` folders. Some Android `/Android/data/` folders are not selectable due to platform restrictions.
-2. Choose the default installed emulator; or tap a cover and choose an emulator for that title. Long-press to change it later.
-3. Optionally, Settings → ChatGPT AI → Continue with ChatGPT. Complete consent in the browser. The app locally validates the token before storing it. Account connection may be unavailable depending on eligibility or plan/workspace settings.
-4. Optionally perform AI matching on one game or up to 12 new games. Only filename and current display metadata are sent, **not ROM files or battery saves**.
-5. Test one game to confirm the chosen emulator accepts the URI and loads the battery save. ROM Shelf cannot force resume from proprietary emulator save states.
 
-## Review fixes in the working source
+1. Select the folder that contains the ROMs. If Android rejects a root or `Download` folder, choose the permitted ROM subfolder instead.
+2. Use `Johnemulators/GBA/save` as the shared battery-save folder and set Pizza Boy's **Save folder** to that same directory. ROM Shelf reads and writes this single selected folder.
+3. Tap a cover to launch through Pizza Boy. Long-press for save operations, title editing, screenshot/cover import, and details. The Pizza Boy version is selected once in Settings for all games.
+4. To use screenshots, enable **Use latest game screenshot as cover** and choose `Pictures/Pizza Boy A Screenshots`. ROM Shelf attributes a timestamped screenshot to the game that was open in Pizza Boy when it was captured. For older John GBA previews, select the `Johnemulators/GBA` parent so `state` and `autostate` are scanned.
 
-This working source is version 0.3.1 (version code 4), intended to update an existing 0.3.0 install with the same signing certificate. The local build remains unsigned until the established owner key is available.
+ROM Shelf can only read folders for which Android grants a persistent document-tree permission. Battery `.sav` files and emulator save states are different formats. The app does not bundle or distribute ROMs.
 
-- Save transfers, imports, and restores back up and write the exact selected SAF document, even when it is nested under the selected tree. New saves are removed if creation or verification fails; backups use unique staged files.
-- AI artwork downloads are restricted to HTTPS on the exact `thumbnails.libretro.com` host, including every redirect. Other AI-suggested image hosts fall back to the catalog or manual cover selection.
-- Manual cover imports are size-limited, validated in a temporary file, and atomically committed so a rejected replacement leaves the old cover intact.
-- ZIP scanning caps entry traversal, expanded metadata before the first GBA member, and ROM bytes. Full ROM scans recompute content hashes instead of trusting URI/size/mtime cache keys.
-- Per-game metadata, emulator choice, AI state, and covers use content-based ROM identity where a digest is available, with migration from existing URI-based settings.
-- Seven local JVM regression tests cover URL policy, bounded ZIP handling, identity stability, and atomic cover behavior. They do not replace real SAF/provider and emulator tests.
+## Build and signing
 
-## Security / limitations
-- No embedded API key, no CLI token extraction, no password collection. OAuth tokens are kept in encrypted app-private storage backed by Android Keystore; the host UUID is nonsensitive app-private data.
-- The app's sign-in uses an ephemeral loopback listener (`127.0.0.1`) with random `state`, PKCE verifier, nonce, and signature-verified ID token. A successful identity login without `chatgpt.tokens.use.direct` scope cannot access plan inference.
-- The OAuth runtime uses OpenAI's direct public Responses API; web search and model availability depend on account permissions.
-- The first 0.3.0 install uses a *different Android application ID*: old local settings do not automatically migrate, and old versions remain separately installed until removed. ROMs and accessible shared .sav files are not removed when uninstalling old app versions.
-- Android 11+ document providers may restrict accessing another app's private folders. External ROM intents are best-effort and may require in-emulator import.
+```bash
+cd RomShelf
+./gradlew testDebugUnitTest assembleRelease
+```
 
-## Build
-The isolated GitHub Actions build compiles an **unsigned release** APK using Android SDK 36 and Gradle 8.13, aligns it, and exports `apksigner.jar` to an artifact. A separate offline signing step with a user-owned stable signing key is needed for installable release output. Keep that keystore and password secure for 0.4.0 and newer.
+The release build is unsigned. The current signed candidate is `artifacts/rom-shelf/apk/ROM-Shelf-0.3.6.apk` (APK SHA-256 `30f7fcefcd76fa1e373c4ece779eba9472417a798d3b24f04da62d0e45599a5f`), signed with the owner-provided key whose certificate SHA-256 is `b094cd94d6975c3c62c467658d38523091c638068b9fb3b06d0d2998a19d2456`. Keep the keystore and password outside Git and build logs.

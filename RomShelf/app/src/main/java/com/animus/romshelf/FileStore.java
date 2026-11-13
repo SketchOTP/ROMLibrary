@@ -38,7 +38,15 @@ final class FileStore {
     }
 
     Uri getUri(String key) {
-        String s = prefs.getString("folder_" + key, null);
+        if (ROMS.equals(key)) {
+            String roms = prefs.getString("folder_" + ROMS, null);
+            return roms == null ? null : Uri.parse(roms);
+        }
+        // One selected battery-save directory is canonical for both emulators.
+        // Older installs may have only the John GBA or Pizza Boy tree saved.
+        String s = prefs.getString("folder_" + SHARED, null);
+        if (s == null) s = prefs.getString("folder_" + JOHN, null);
+        if (s == null) s = prefs.getString("folder_" + PIZZA, null);
         return s == null ? null : Uri.parse(s);
     }
 
@@ -110,34 +118,24 @@ final class FileStore {
     private Map<String, Map<String, DocumentFile>> loadSaveMaps() {
         Map<String, Map<String, DocumentFile>> result = new HashMap<>();
         result.put(SHARED, findSaves(folder(SHARED)));
-        result.put(JOHN, findSaves(folder(JOHN)));
-        result.put(PIZZA, findSaves(folder(PIZZA)));
         return result;
     }
 
     private void applySaveState(List<Game> games, Map<String, Map<String, DocumentFile>> saves) {
         for (Game game : games) {
             game.sharedSave = null; game.sharedStamp = 0;
-            game.johnSave = null; game.johnStamp = 0;
-            game.pizzaSave = null; game.pizzaStamp = 0;
             for (String stem : game.saveStems) {
                 String key = stem.toLowerCase(Locale.ROOT);
                 considerSave(game, SHARED, saves.get(SHARED).get(key));
-                considerSave(game, JOHN, saves.get(JOHN).get(key));
-                considerSave(game, PIZZA, saves.get(PIZZA).get(key));
             }
         }
     }
 
     private void considerSave(Game game, String destination, DocumentFile save) {
-        if (save == null) return;
+        if (save == null || !SHARED.equals(destination)) return;
         long time = originalActivityTime(game, destination, save);
-        if (SHARED.equals(destination) && (game.sharedSave == null || time > game.sharedStamp)) {
+        if (game.sharedSave == null || time > game.sharedStamp) {
             game.sharedSave = save; game.sharedStamp = time;
-        } else if (JOHN.equals(destination) && (game.johnSave == null || time > game.johnStamp)) {
-            game.johnSave = save; game.johnStamp = time;
-        } else if (PIZZA.equals(destination) && (game.pizzaSave == null || time > game.pizzaStamp)) {
-            game.pizzaSave = save; game.pizzaStamp = time;
         }
     }
 
