@@ -46,11 +46,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public final class MainActivity extends Activity {
     private static final int BACKGROUND = 0xff101118, CARD = 0xff1d202b, TEXT = 0xfff5f3ff;
     private static final int SECONDARY = 0xffaaa5bb, PURPLE = 0xff9c75ef, GREEN = 0xff66d9a3;
-    private static final int PICK_ROMS = 210, PICK_SHARED = 211, PICK_COVER = 213, EXPORT_SAVE = 214, IMPORT_SAVE = 215, PICK_STATE_COVERS = 217;
+    private static final int PICK_ROMS = 210, PICK_SHARED = 211, PICK_COVER = 213, EXPORT_SAVE = 214, IMPORT_SAVE = 215;
     private final Handler main = new Handler(Looper.getMainLooper());
     private final ExecutorService io = Executors.newSingleThreadExecutor();
     private final AtomicBoolean scanning = new AtomicBoolean(false);
-    private final AtomicBoolean capturingScreenshot = new AtomicBoolean(false);
     private final List<Game> games = new ArrayList<>();
     private FileStore store;
     private CoverLoader covers;
@@ -70,8 +69,9 @@ public final class MainActivity extends Activity {
         clearLegacyLauncherChoices();
         store = new FileStore(this);
         covers = new CoverLoader(this);
-        covers.clearLegacyAiState();
+        covers.clearRetiredFeatureState();
         appPrefs = getSharedPreferences("rom_shelf_launcher", MODE_PRIVATE);
+        migratePendingPizzaSession();
         getWindow().setStatusBarColor(BACKGROUND);
         getWindow().setNavigationBarColor(BACKGROUND);
         buildUi();
@@ -80,46 +80,36 @@ public final class MainActivity extends Activity {
 
     @Override protected void onResume() {
         super.onResume();
+        recordPendingPizzaSession();
         if (store != null && grid != null) {
-            if (covers != null) covers.invalidateScreenshotIndex();
             if (games.isEmpty()) refresh();
-            else {
-                capturePendingScreenshot();
-                refreshSaveState();
-            }
+            else refreshSaveState();
         }
     }
 
-    private void capturePendingScreenshot() {
-        if (appPrefs == null || covers == null) return;
-        String key = appPrefs.getString("pending_screenshot_game", "");
-        long launchedAt = appPrefs.getLong("pending_screenshot_after", 0);
-        if (key.isEmpty() || launchedAt <= 0) return;
-        recordPendingPizzaSession(key, launchedAt);
-        if (!capturingScreenshot.compareAndSet(false, true)) return;
-        Game game = null;
-        for (Game candidate : games) if (candidate.key.equals(key)) { game = candidate; break; }
-        if (game == null) { capturingScreenshot.set(false); return; }
-        final Game launchedGame = game;
-        io.execute(() -> {
-            boolean captured = false;
-            try { captured = covers.captureLatestPizzaScreenshot(launchedGame, launchedAt); }
-            catch (Exception ignored) { }
-            finally {
-                appPrefs.edit().remove("pending_screenshot_game").remove("pending_screenshot_after")
-                    .remove("pending_pizza_session_recorded").apply();
-                capturingScreenshot.set(false);
-            }
-            if (captured) main.post(this::render);
-        });
+    private void migratePendingPizzaSession() {
+        String oldGame = appPrefs.getString("pending_screenshot_game", "");
+        long oldLaunchTime = appPrefs.getLong("pending_screenshot_after", 0);
+        if (!oldGame.isEmpty() && oldLaunchTime > 0 && !appPrefs.contains("pending_pizza_game")) {
+            appPrefs.edit().putString("pending_pizza_game", oldGame)
+                .putLong("pending_pizza_launched_at", oldLaunchTime)
+                .remove("pending_screenshot_game").remove("pending_screenshot_after")
+                .remove("pending_pizza_session_recorded").apply();
+        } else {
+            appPrefs.edit().remove("pending_screenshot_game").remove("pending_screenshot_after")
+                .remove("pending_pizza_session_recorded").apply();
+        }
     }
 
-    private void recordPendingPizzaSession(String gameKey, long launchedAt) {
-        if (appPrefs.getBoolean("pending_pizza_session_recorded", false)) return;
+    private void recordPendingPizzaSession() {
+        if (appPrefs == null) return;
+        String gameKey = appPrefs.getString("pending_pizza_game", "");
+        long launchedAt = appPrefs.getLong("pending_pizza_launched_at", 0);
+        if (gameKey.isEmpty() || launchedAt <= 0) return;
         long returnedAt = Math.max(System.currentTimeMillis(), launchedAt);
         appPrefs.edit().putLong(pizzaSessionKey(gameKey), returnedAt)
             .putLong(pizzaQuickStateKey(gameKey), returnedAt)
-            .putBoolean("pending_pizza_session_recorded", true).apply();
+            .remove("pending_pizza_game").remove("pending_pizza_launched_at").apply();
         for (Game candidate : games) {
             if (candidate.key.equals(gameKey)) {
                 candidate.pizzaSessionStamp = returnedAt;
@@ -225,7 +215,6 @@ public final class MainActivity extends Activity {
                 } else {
                     games.clear();
                     games.addAll(done);
-                    capturePendingScreenshot();
                     render();
                 }
             });
@@ -492,19 +481,18 @@ public final class MainActivity extends Activity {
                     intent.setClassName(pkg, pkg + ".MainActivity");
                 }
                 try {
-                    appPrefs.edit().putString("pending_screenshot_game", game.key)
-                        .putLong("pending_screenshot_after", System.currentTimeMillis())
-                        .putBoolean("pending_pizza_session_recorded", false).apply();
+                    appPrefs.edit().putString("pending_pizza_game", game.key)
+                        .putLong("pending_pizza_launched_at", System.currentTimeMillis()).apply();
                     startActivity(intent);
                     return;
                 } catch (ActivityNotFoundException e) {
-                    clearPendingScreenshot();
+                    clearPendingPizzaSession();
                     lastFailure = e;
                 }
             }
             if (lastFailure != null) throw lastFailure;
         } catch (Exception e) {
-            clearPendingScreenshot();
+            clearPendingPizzaSession();
             // Android emulators do not all expose compatible external-ROM VIEW activities.
             new AlertDialog.Builder(this).setTitle("Could not launch ROM")
                 .setMessage(launcherLabel(pkg) + " did not accept the external ROM intent. Install/check that emulator or choose a different one. If it opens but doesn't load, import the game through the emulator first. Your ROM and save are unchanged.")
@@ -512,8 +500,9 @@ public final class MainActivity extends Activity {
                 .setPositiveButton("Change emulator",(d,w)->chooseEmulator(game,true)).show();
         }
     }
-    private void clearPendingScreenshot() {
-        if (appPrefs != null) appPrefs.edit().remove("pending_screenshot_game").remove("pending_screenshot_after")
+    private void clearPendingPizzaSession() {
+        if (appPrefs != null) appPrefs.edit().remove("pending_pizza_game").remove("pending_pizza_launched_at")
+            .remove("pending_screenshot_game").remove("pending_screenshot_after")
             .remove("pending_pizza_session_recorded").apply();
     }
     private void openGame(Game game) {
@@ -527,7 +516,7 @@ public final class MainActivity extends Activity {
         if (store.newestBackup(game, FileStore.SHARED) != null)
             addAction(choices, actions, "Restore shared save backup", () -> confirmRestore(game, FileStore.SHARED));
         addAction(choices, actions, "Edit display title", () -> editDisplayTitle(game));
-        addAction(choices, actions, "Import screenshot or cover", () -> chooseCover(game));
+        addAction(choices, actions, "Import custom cover", () -> chooseCover(game));
         addAction(choices, actions, "Remove custom cover", () -> { covers.removeCustom(game); render(); });
         addAction(choices, actions, "Save and ROM details", () -> new AlertDialog.Builder(this)
             .setTitle(game.title)
@@ -620,8 +609,6 @@ public final class MainActivity extends Activity {
             "ROM folder " + mark(FileStore.ROMS),
             "John GBA / Pizza Boy shared saves " + mark(FileStore.SHARED),
             "Pizza Boy version: " + launcherLabel(resolvedDefaultLauncher()),
-            "Use latest game screenshot as cover: " + (covers.screenshotsEnabled() ? "On" : "Off"),
-            "Screenshot source folder " + (covers.screenshotFolder() == null ? "○" : "●"),
             "Rescan collection",
             "ROM Shelf help"
         };
@@ -630,19 +617,13 @@ public final class MainActivity extends Activity {
                 if (which == 0) pickFolder(PICK_ROMS);
                 else if (which == 1) pickFolder(PICK_SHARED);
                 else if (which == 2) chooseEmulator(null,false);
-                else if (which == 3) {
-                    covers.setScreenshotsEnabled(!covers.screenshotsEnabled());
-                    toast("Screenshot covers " + (covers.screenshotsEnabled() ? "enabled" : "disabled"));
-                    render();
-                }
-                else if (which == 4) pickFolder(PICK_STATE_COVERS);
-                else if (which == 5) refresh();
+                else if (which == 3) refresh();
                 else showHelp();
             }).setNegativeButton("Close",null).show();
     }
     private void showHelp() {
         new AlertDialog.Builder(this).setTitle("How ROM Shelf works")
-            .setMessage("1. Select the ROM folder and the Johnemulators/GBA/save folder for shared .sav files. Set Pizza Boy's Save folder to this same directory. John GBA remains installed with its data, but ROM Shelf launches every game through the selected Pizza Boy version.\n2. Tap a cover to play; long-press it for save, title, and artwork options.\n3. Enable screenshot covers and choose Pictures/Pizza Boy A Screenshots. Pizza Boy names screenshots by time, so ROM Shelf associates the newest screenshot taken during a game's launch session with that game when you return. Take the screenshot after reaching the save point you want shown. ROM Shelf copies it into its own cover cache. You can also import a screenshot directly for one game.\n\nRecent saves compare the shared battery .sav time with the Pizza quickstate activity estimate recorded when you return from Pizza to ROM Shelf; the newest known time wins and appears in Eastern Time. In Pizza Boy, keep Auto Load Stat and Auto Save Stat enabled with automatic slot 1 selected. Android keeps Pizza's state files private, so ROM Shelf cannot read their exact file timestamps; the quickstate time is a session-return estimate, not a direct .stat timestamp. Identical ROM content hashes appear once; original files are not deleted.")
+            .setMessage("1. Select the ROM folder and the Johnemulators/GBA/save folder for shared .sav files. Set Pizza Boy's Save folder to this same directory. John GBA remains installed with its data, but ROM Shelf launches every game through the selected Pizza Boy version.\n2. Tap a cover to play; long-press it for save, title, custom cover, and details options. Covers can be imported from local image files or fetched from the Libretro GBA catalog.\n\nRecent saves compare the shared battery .sav time with the Pizza quickstate activity estimate recorded when you return from Pizza to ROM Shelf; the newest known time wins and appears in Eastern Time. In Pizza Boy, keep Auto Load Stat and Auto Save Stat enabled with automatic slot 1 selected. Android keeps Pizza's state files private, so ROM Shelf cannot read their exact file timestamps; the quickstate time is a session-return estimate, not a direct .stat timestamp. Identical ROM content hashes appear once; original files are not deleted.")
             .setPositiveButton("OK",null).show();
     }
     private void pickFolder(int request) {
@@ -683,16 +664,6 @@ public final class MainActivity extends Activity {
                 final String resultText = message;
                 main.post(() -> { toast(resultText); render(); });
             });
-            return;
-        }
-        if (request == PICK_STATE_COVERS) {
-            try {
-                int flags = data.getFlags() & (Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
-                getContentResolver().takePersistableUriPermission(uri, flags);
-                covers.setScreenshotFolder(uri);
-                toast("Screenshot source folder saved");
-                render();
-            } catch (Exception e) { toast("Could not keep screenshot folder permission: " + e.getMessage()); }
             return;
         }
         String key = request == PICK_ROMS ? FileStore.ROMS : request == PICK_SHARED ? FileStore.SHARED : null;

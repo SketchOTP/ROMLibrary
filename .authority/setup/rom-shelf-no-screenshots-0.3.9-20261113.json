@@ -1,0 +1,65 @@
+{
+  "recorded_at_utc": "2026-11-13T21:19:16Z",
+  "task": "D-ROM-SHELF-NO-SCREENSHOTS-20261113",
+  "release": {
+    "version_name": "0.3.9",
+    "version_code": 12,
+    "application_id": "com.animus.romshelf.launcher",
+    "signed_apk": "artifacts/rom-shelf/apk/ROM-Shelf-0.3.9.apk",
+    "signed_apk_sha256": "34edbecf99f3a6adb132f9af8dd88c50c4aae3f6a068d41f24bd4f1543a78111",
+    "unsigned_aligned_apk": "artifacts/rom-shelf/apk/ROM-Shelf-0.3.9-unsigned-aligned.apk",
+    "unsigned_aligned_sha256": "6fe7b69ab562ce27ea16f15f07cf6b93aeb6762bfc1d18cb0f36b16f33210571",
+    "zipalign_check": "passed",
+    "apksigner_verify": "passed for v2 and v3",
+    "certificate_sha256": "b094cd94d6975c3c62c467658d38523091c638068b9fb3b06d0d2998a19d2456"
+  },
+  "build": {
+    "command": "./gradlew assembleRelease lintVitalRelease",
+    "status": "passed",
+    "release_lint_vital": "passed",
+    "unit_tests": "not run; not requested for this removal"
+  },
+  "implementation": {
+    "removed": [
+      "Pizza Boy screenshot discovery and launch-session capture",
+      "John GBA .jsN/.jsa state-preview matching",
+      "Screenshot cover toggle and source-folder selection",
+      "Screenshot-specific game action and help text"
+    ],
+    "retired_on_startup": [
+      "ROM Shelf-generated covers/autofetch/*.state.img cache",
+      "Screenshot preferences and state-signature metadata",
+      "Persisted SAF grant for the former screenshot source folder, unless the same URI is still used by the active ROM or save folder",
+      "Legacy screenshot pending-launch keys, migrated to Pizza-session tracking when valid"
+    ],
+    "preserved": [
+      "Imported custom cover images",
+      "Libretro GBA catalog artwork",
+      "Pizza-only game launching and quickstate/session recency",
+      "Pizza Boy source screenshots and state files",
+      "ROMs, shared .sav files, and John GBA data"
+    ]
+  },
+  "device": {
+    "device": "Owner Pixel 11 Pro Fold via wireless ADB",
+    "android_api": 37,
+    "installed_version": "0.3.9 / versionCode 12",
+    "install": "adb install -r succeeded over existing package and app data",
+    "foreground_after_check": "ROM Shelf MainActivity",
+    "library_observed": "49 games; 31 with shared battery saves; three duplicates hidden",
+    "settings_observed": [
+      "ROM folder",
+      "John GBA / Pizza Boy shared saves",
+      "Pizza Boy version",
+      "Rescan collection",
+      "ROM Shelf help"
+    ],
+    "removed_screenshot_controls_observed": true,
+    "rom_shelf_generated_state_cover_cache": "Read-only ADB check after startup found zero *.state.img files in ROM Shelf's autofetch cover cache",
+    "pizza_state_handling_during_check": "Pizza was not launched; no emulator state or source screenshot was opened or rewritten"
+  },
+  "limitations": [
+    "The generated state-cover cache was inspected and empty; the persisted SAF permission state was not independently inspected after launch.",
+    "The current Monomyth card still shows its previously recorded Pizza session time; that time came from earlier verification and is not evidence of owner play time."
+  ]
+}

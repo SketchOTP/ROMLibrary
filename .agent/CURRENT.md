@@ -136,3 +136,15 @@ SUPERSEDES: A6-CHECKPOINT-ROM-SHELF-QUICKSTATE-RECENCY-20261113
 EVIDENCE: .authority/setup/rom-shelf-quickstate-recency-0.3.8-20261113.json; RomShelf/PROJECT_HANDOFF.md; artifacts/rom-shelf/apk/ROM-Shelf-0.3.8.apk
 SUMMARY: ROM Shelf 0.3.8/versionCode 11 records a Pizza quickstate activity estimate when returning from a Shelf-launched Pizza session and sorts Recent by the maximum of that estimate, the shared `.sav` time, and retained Pizza session time. Release build, eight unit tests, lint vital, signature/alignment checks, in-place Pixel installation, and the new sort-menu label were verified. Pixel Auto Load Stat/Auto Save Stat are configured with slot 1. The app still cannot read the exact private `.stat` mtime; Monomyth's existing session stamp remains explicitly a session estimate, not evidence of owner play time.
 NEXT: Exact quickstate-file versus battery-save timestamp ranking remains dependent on Pizza Boy exposing quickstate metadata through shared storage or a supported integration API.
+
+ENTRY_ID: A6-CHECKPOINT-ROM-SHELF-NO-SCREENSHOTS-039-20261113
+UTC: 2026-11-13T21:19:16Z
+ACTOR: Codex
+TYPE: CHECKPOINT
+GOAL: A6-GOAL-ROM-SHELF-NO-SCREENSHOTS-20261113
+TASK: D-ROM-SHELF-NO-SCREENSHOTS-20261113
+STATUS: COMPLETE
+SUPERSEDES: A6-CHECKPOINT-ROM-SHELF-QUICKSTATE-INCLUSIVE-038-20261113
+EVIDENCE: .authority/setup/rom-shelf-no-screenshots-0.3.9-20261113.json; RomShelf/PROJECT_HANDOFF.md; artifacts/rom-shelf/apk/ROM-Shelf-0.3.9.apk
+SUMMARY: ROM Shelf 0.3.9/versionCode 12 removes emulator screenshot/state-preview art capture, scanning, cache selection, and Settings controls. Startup removes ROM Shelf-generated `.state.img` cache entries and retired screenshot settings; it releases the old SAF grant only if that URI is not still used for ROMs or saves. A read-only Pixel check found zero generated `.state.img` cache files; Settings no longer lists screenshot controls. Generic custom cover import, Libretro art, Pizza launch/session recency, emulator source files, ROMs, and shared saves are preserved. Release build/lint, expected-signature verification, alignment, and in-place Pixel install passed.
+NEXT: Exact Pizza `.stat` timestamp comparison remains the separate documented platform limitation; the current Pizza session timestamp is still only an estimate.

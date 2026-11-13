@@ -63,7 +63,7 @@ The following source changes supersede the applicable open code findings above. 
 5. Test ChatGPT OAuth and AI only after current official interfaces and account consent are confirmed; do not treat this handoff's claims as live API verification.
 6. Keep the private signing key and password out of Git, build logs, and workflow artifacts. Do not generate a replacement key or claim update compatibility under a different signer.
 
-## Owner steering — 2026-11-13 (current direction)
+## Historical owner steering — 2026-11-13 (superseded by 0.3.9)
 
 This section supersedes the original charter's optional AI matching and preferred-emulator language. The full effective revision is recorded in `.agent/GOAL.md`.
 
@@ -96,3 +96,11 @@ ROM Shelf 0.3.8 treats Pizza's automatic quickstate activity as a recent-progres
 This marker is recorded at Pizza-session return because Auto Save Stat is enabled on the Pixel; it is not a read of the `.stat` file's actual modification time. Android does not allow ROM Shelf to read Pizza's app-specific `Android/data` state directory, even with the all-files permission, so an exact live `.stat` versus `.sav` comparison remains unavailable. The Pixel's direct Pizza auto-state files are preserved/managed by Pizza Boy; ROM Shelf does not copy or overwrite them.
 
 Release evidence: `.authority/setup/rom-shelf-quickstate-recency-0.3.8-20261113.json`.
+
+## Owner refinement — remove emulator screenshot covers — 2026-11-13
+
+ROM Shelf 0.3.9 removes Pizza screenshot and John state-preview artwork features. Settings no longer requests a screenshot source folder or toggles screenshot covers; game actions no longer advertise screenshot import; launch/return tracking remains only for Pizza session and quickstate activity recency. Automatic screenshot detection, image copying, and `.state.img` cover caches are removed. Startup clears ROM Shelf's generated screenshot cache and screenshot settings, and releases the saved SAF grant for the old screenshot source folder unless that same URI is still used for the ROM or save folder. Pizza Boy's source screenshots, emulator states, ROMs, existing custom cover images, and shared `.sav` files remain outside that cleanup.
+
+Custom cover import and Libretro box-art fetching remain. Recent still uses the shared `.sav` time and the Pizza session-return quickstate estimate; the exact `.stat` mtime remains unavailable to ROM Shelf.
+
+Release evidence: `.authority/setup/rom-shelf-no-screenshots-0.3.9-20261113.json`.

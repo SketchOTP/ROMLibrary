@@ -365,3 +365,17 @@ SUPERSEDES: A6-CHECKPOINT-ROM-SHELF-QUICKSTATE-RECENCY-20261113
 EVIDENCE: .authority/setup/rom-shelf-quickstate-recency-0.3.8-20261113.json; RomShelf/app/build/test-results/testDebugUnitTest/TEST-com.animus.romshelf.SafetyRegressionTest.xml; Pixel wireless ADB observation
 SUMMARY: 0.3.8/versionCode 11 adds a distinct Pizza quickstate activity estimate to the Recent comparison; the newest of it, the shared `.sav`, and legacy Pizza-session markers determines sort order and label. Eight unit tests, release assembly/lint, expected-certificate v2/v3 signature, zip alignment, in-place Pixel install, and the new sort-menu label passed. No emulator session or state file was opened during this update verification.
 NEXT: Pizza's exact private `.stat` modification time remains unavailable to ROM Shelf under Android scoped storage. Keep the estimate explicit; exact comparison needs supported emulator metadata.
+
+## A6-CHECKPOINT-ROM-SHELF-NO-SCREENSHOTS-039-20261113 — CHECKPOINT
+
+ENTRY_ID: A6-CHECKPOINT-ROM-SHELF-NO-SCREENSHOTS-039-20261113
+UTC: 2026-11-13T21:19:16Z
+ACTOR: Codex
+TYPE: CHECKPOINT
+GOAL: A6-GOAL-ROM-SHELF-NO-SCREENSHOTS-20261113
+TASK: D-ROM-SHELF-NO-SCREENSHOTS-20261113
+STATUS: COMPLETE
+SUPERSEDES: A6-CHECKPOINT-ROM-SHELF-QUICKSTATE-INCLUSIVE-038-20261113
+EVIDENCE: .authority/setup/rom-shelf-no-screenshots-0.3.9-20261113.json; Pixel wireless ADB observation
+SUMMARY: Removed Pizza screenshot and John state-preview cover discovery/capture, `.state.img` display path, screenshot toggle/source-folder UI, and screenshot-specific help/action text. On startup, ROM Shelf deletes only its own `.state.img` cache and releases the saved screenshot-folder SAF grant only when that URI is not shared with ROM or save access; a read-only Pixel check found zero generated `.state.img` cache files. Pizza source screenshots/state files and custom covers are preserved. 0.3.9/versionCode 12 release assembly/lint, expected signer v2/v3, alignment, in-place Pixel installation, and five-item Settings list were verified.
+NEXT: Continue using custom image covers/Libretro box art. The prior quickstate exact-mtime limitation remains separate from this completed removal.
