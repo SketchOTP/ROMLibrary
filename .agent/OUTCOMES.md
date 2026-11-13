@@ -379,3 +379,17 @@ SUPERSEDES: A6-CHECKPOINT-ROM-SHELF-QUICKSTATE-INCLUSIVE-038-20261113
 EVIDENCE: .authority/setup/rom-shelf-no-screenshots-0.3.9-20261113.json; Pixel wireless ADB observation
 SUMMARY: Removed Pizza screenshot and John state-preview cover discovery/capture, `.state.img` display path, screenshot toggle/source-folder UI, and screenshot-specific help/action text. On startup, ROM Shelf deletes only its own `.state.img` cache and releases the saved screenshot-folder SAF grant only when that URI is not shared with ROM or save access; a read-only Pixel check found zero generated `.state.img` cache files. Pizza source screenshots/state files and custom covers are preserved. 0.3.9/versionCode 12 release assembly/lint, expected signer v2/v3, alignment, in-place Pixel installation, and five-item Settings list were verified.
 NEXT: Continue using custom image covers/Libretro box art. The prior quickstate exact-mtime limitation remains separate from this completed removal.
+
+## A6-OUTCOME-ROM-SHELF-BOX-ART-READD-20261113 — DEVICE_COPY
+
+ENTRY_ID: A6-OUTCOME-ROM-SHELF-BOX-ART-READD-20261113
+UTC: 2026-11-13T21:28:16Z
+ACTOR: authority-cli
+TYPE: DEVICE_COPY
+GOAL: see .agent/GOAL.md
+TASK: see .agent/CURRENT.md
+STATUS: COMPLETE
+SUPERSEDES: none
+EVIDENCE: .authority/setup/rom-shelf-box-art-readd-20261113.json; .authority/setup/rom-shelf-covers-20261113/manifest.json; Pixel wireless ADB SHA-256 comparison; RomShelf/app/src/main/java/com/animus/romshelf/MainActivity.java:635-642
+SUMMARY: Copied the existing 52 ROM Shelf covers to Pixel Pictures/Pizza Boy A Screenshots/ROM Shelf Box Art - Re-add with readable filenames and correct image extensions. All 52 device SHA-256 values match the source; the existing Pizza screenshot and source cover directory were preserved.
+NEXT: Re-add any cover through the game card Import custom cover action and select the matching image from the new folder.

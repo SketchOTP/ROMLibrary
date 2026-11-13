@@ -148,3 +148,17 @@ SUPERSEDES: A6-CHECKPOINT-ROM-SHELF-QUICKSTATE-INCLUSIVE-038-20261113
 EVIDENCE: .authority/setup/rom-shelf-no-screenshots-0.3.9-20261113.json; RomShelf/PROJECT_HANDOFF.md; artifacts/rom-shelf/apk/ROM-Shelf-0.3.9.apk
 SUMMARY: ROM Shelf 0.3.9/versionCode 12 removes emulator screenshot/state-preview art capture, scanning, cache selection, and Settings controls. Startup removes ROM Shelf-generated `.state.img` cache entries and retired screenshot settings; it releases the old SAF grant only if that URI is not still used for ROMs or saves. A read-only Pixel check found zero generated `.state.img` cache files; Settings no longer lists screenshot controls. Generic custom cover import, Libretro art, Pizza launch/session recency, emulator source files, ROMs, and shared saves are preserved. Release build/lint, expected-signature verification, alignment, and in-place Pixel install passed.
 NEXT: Exact Pizza `.stat` timestamp comparison remains the separate documented platform limitation; the current Pizza session timestamp is still only an estimate.
+
+## A6-CHECKPOINT-ROM-SHELF-BOX-ART-READD-20261113 — box art copied for easy re-adding
+
+ENTRY_ID: A6-CHECKPOINT-ROM-SHELF-BOX-ART-READD-20261113
+UTC: 2026-11-13T21:28:33Z
+ACTOR: Codex
+TYPE: CHECKPOINT
+GOAL: A6-GOAL-ROM-SHELF-NO-SCREENSHOTS-20261113
+TASK: D-ROM-SHELF-BOX-ART-READD-20261113
+STATUS: COMPLETE
+SUPERSEDES: A6-CHECKPOINT-ROM-SHELF-NO-SCREENSHOTS-039-20261113
+EVIDENCE: .authority/setup/rom-shelf-box-art-readd-20261113.json; .authority/setup/rom-shelf-covers-20261113/manifest.json; Pixel wireless ADB SHA-256 comparison; RomShelf/app/src/main/java/com/animus/romshelf/MainActivity.java:635-642
+SUMMARY: Copied 52 existing ROM Shelf cover images into Pixel Pictures/Pizza Boy A Screenshots/ROM Shelf Box Art - Re-add. Filenames are readable, extensions match PNG/JPEG/WebP contents, and all 52 on-device hashes match source images. The existing Pizza screenshot and original cover directory remain present. The app import picker uses ACTION_OPEN_DOCUMENT with image/*; opening that UI was not part of this copy task.
+NEXT: Re-add a cover from a game card with Import custom cover, selecting the corresponding image from the new folder.
