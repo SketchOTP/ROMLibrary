@@ -177,3 +177,18 @@ SUPERSEDES: A6-CHECKPOINT-ROM-SHELF-BOX-ART-READD-20261113
 EVIDENCE: .authority/setup/rom-shelf-0.4.0-20261113.json; .agent/OUTCOMES.md; artifacts/rom-shelf/apk/ROM-Shelf-0.4.0.apk
 SUMMARY: Implemented future ROM and matching battery-save import, duplicate skipping, backup-safe newest-save replacement, persistent box-art folder management, and per-game title/cover actions in ROM Shelf 0.4.0/versionCode 13. Build, lint, signer, alignment, in-place Pixel install, main screen, add menu, Settings, long-press actions, and both art-folder picker entry paths were verified. The selected art folder permission survived app restart. No ROM, save, or cover was imported or modified; new-item Pizza launch/save pickup remains unqualified.
 NEXT: Use an owner-approved disposable ROM and matching .sav to verify import, Pizza launch, and save pickup while preserving existing game data.
+
+
+## A6-CHECKPOINT-ROM-SHELF-INTAKE-040-PUBLISHED-20261113 — 0.4.0 published
+
+ENTRY_ID: A6-CHECKPOINT-ROM-SHELF-INTAKE-040-PUBLISHED-20261113
+UTC: 2026-11-13T22:23:19Z
+ACTOR: Codex
+TYPE: CHECKPOINT
+GOAL: A6-GOAL-ROM-SHELF-NO-SCREENSHOTS-20261113
+TASK: D-ROM-SHELF-FUTURE-INTAKE-20261113
+STATUS: PARTIAL
+SUPERSEDES: A6-CHECKPOINT-ROM-SHELF-INTAKE-040-20261113
+EVIDENCE: .authority/setup/rom-shelf-0.4.0-20261113.json; .agent/OUTCOMES.md; commit 28f59d66ab66b84e4b8b38d93f7b667633619aab; origin/main ref verification
+SUMMARY: Published ROM Shelf 0.4.0 source and signed APK to SketchOTP/ROMLibrary main at 28f59d66ab66b84e4b8b38d93f7b667633619aab. Remote and local refs match; worktree is clean. The signed update is installed on the Pixel and the persistent box-art folder remains selected. New-item Pizza launch/save pickup is not yet qualified because no ROM or save fixture was imported.
+NEXT: Verify add/import/launch/save pickup with an owner-approved disposable GBA ROM and matching .sav.

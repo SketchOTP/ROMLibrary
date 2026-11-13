@@ -435,3 +435,17 @@ SUPERSEDES: none
 EVIDENCE: .authority/setup/rom-shelf-0.4.0-20261113.json; RomShelf/PROJECT_HANDOFF.md; artifacts/rom-shelf/apk/ROM-Shelf-0.4.0.apk
 SUMMARY: Accepted the 0.4.0 implementation, signed update, and observed Pixel UI scope. Existing data and app setup are preserved. End-to-end new ROM/save import and emulator pickup remain explicitly unverified.
 NEXT: Qualify import and Pizza save behavior only with an owner-approved disposable fixture.
+
+## A6-PUBLISH-ROM-SHELF-INTAKE-040-20261113 — PUBLICATION
+
+ENTRY_ID: A6-PUBLISH-ROM-SHELF-INTAKE-040-20261113
+UTC: 2026-11-13T22:23:04Z
+ACTOR: authority-cli
+TYPE: PUBLICATION
+GOAL: see .agent/GOAL.md
+TASK: see .agent/CURRENT.md
+STATUS: PASSED
+SUPERSEDES: none
+EVIDENCE: .authority/setup/rom-shelf-0.4.0-20261113.json; artifacts/rom-shelf/apk/ROM-Shelf-0.4.0.apk; git rev-parse HEAD; git ls-remote origin refs/heads/main
+SUMMARY: Committed the ROM Shelf 0.4.0 source, signed APK, documentation, receipt, and Authority evidence as 28f59d66ab66b84e4b8b38d93f7b667633619aab. Pushed origin/main and confirmed the remote ref matches the local commit; the worktree is clean.
+NEXT: Qualify import and Pizza pickup with an owner-approved disposable ROM/save fixture.
