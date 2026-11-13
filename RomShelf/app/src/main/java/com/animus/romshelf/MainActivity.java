@@ -118,9 +118,13 @@ public final class MainActivity extends Activity {
         if (appPrefs.getBoolean("pending_pizza_session_recorded", false)) return;
         long returnedAt = Math.max(System.currentTimeMillis(), launchedAt);
         appPrefs.edit().putLong(pizzaSessionKey(gameKey), returnedAt)
+            .putLong(pizzaQuickStateKey(gameKey), returnedAt)
             .putBoolean("pending_pizza_session_recorded", true).apply();
         for (Game candidate : games) {
-            if (candidate.key.equals(gameKey)) candidate.pizzaSessionStamp = returnedAt;
+            if (candidate.key.equals(gameKey)) {
+                candidate.pizzaSessionStamp = returnedAt;
+                candidate.pizzaQuickStateStamp = returnedAt;
+            }
         }
     }
 
@@ -150,7 +154,7 @@ public final class MainActivity extends Activity {
         TextView sorter = pill("Recent ▾", CARD, SECONDARY);
         sorter.setPadding(dp(10), dp(10), dp(10), dp(10));
         sorter.setOnClickListener(v -> new AlertDialog.Builder(this).setTitle("Sort library")
-            .setItems(new String[] {"Recent activity (battery save + Pizza session)", "Title A–Z"}, (d, which) -> {
+            .setItems(new String[] {"Recent saves (battery save + Pizza quickstate)", "Title A–Z"}, (d, which) -> {
                 newestFirst = which == 0;
                 sorter.setText(newestFirst ? "Recent ▾" : "A–Z ▾");
                 render();
@@ -249,9 +253,11 @@ public final class MainActivity extends Activity {
     private void migrateGamePreferences(Game game) {
         covers.migrateIdentity(game);
         game.pizzaSessionStamp = appPrefs.getLong(pizzaSessionKey(game.key), 0);
+        game.pizzaQuickStateStamp = appPrefs.getLong(pizzaQuickStateKey(game.key), 0);
     }
 
     private String pizzaSessionKey(String gameKey) { return "pizza_session_" + gameKey; }
+    private String pizzaQuickStateKey(String gameKey) { return "pizza_quickstate_estimate_" + gameKey; }
 
     private void clearLegacyLauncherChoices() {
         SharedPreferences preferences = getSharedPreferences("rom_shelf_launcher", MODE_PRIVATE);
@@ -386,7 +392,7 @@ public final class MainActivity extends Activity {
 
     private String activityDate(Game game) {
         long millis = game.lastPlayedEstimate();
-        String source = game.pizzaSessionStamp > game.sharedStamp ? "Pizza session" : "Battery save";
+        String source = game.activitySource();
         return easternDateFormat("'" + source + "' MMM d, yyyy · h:mm a z").format(new Date(millis));
     }
     private String fullDate(long millis) {
@@ -529,9 +535,10 @@ public final class MainActivity extends Activity {
                 "\nSave: " + (game.sharedSave == null ? "No .sav found" : game.sharedSave.getName() + " (" + game.sharedSave.length() + " bytes)") +
                 "\nMost recent activity (" + game.activitySource() + "): " + fullDate(game.lastPlayedEstimate()) +
                 "\nShared battery save: " + (game.sharedSave == null ? "Not found" : fullDate(game.sharedStamp)) +
+                "\nPizza quickstate activity estimate: " + (game.pizzaQuickStateStamp > 0 ? fullDate(game.pizzaQuickStateStamp) : "No ROM Shelf session recorded") +
                 "\nPizza session returned: " + (game.pizzaSessionStamp > 0 ? fullDate(game.pizzaSessionStamp) : "No ROM Shelf session recorded") +
                 "\nSelected emulator: " + launcherLabel(launcherFor(game)) +
-                "\n\nWhen enabled in Pizza Boy, Auto Load Stat and Auto Save Stat use its automatic state slot. Android keeps Pizza's state files private, so ROM Shelf cannot read their exact timestamps; Recent uses the end of a ROM Shelf launch session as an activity estimate and compares it with the shared battery-save timestamp. Battery saves are shared; state files remain managed by Pizza Boy. Duplicate ROMs are hidden, not deleted.")
+                "\n\nRecent uses the newest known marker: the shared battery .sav time or the Pizza quickstate activity estimate recorded when you return to ROM Shelf. Keep Auto Load Stat and Auto Save Stat enabled with slot 1 selected in Pizza Boy. Android blocks ROM Shelf from reading Pizza's private .stat timestamp, so the quickstate time is the session-return time, not a direct state-file timestamp. Pizza manages the actual state file; duplicate ROMs are hidden, not deleted.")
             .setPositiveButton("Close", null).show());
         new AlertDialog.Builder(this).setTitle(game.title)
             .setItems(choices.toArray(new String[0]), (d, i) -> actions.get(i).run()).show();
@@ -635,7 +642,7 @@ public final class MainActivity extends Activity {
     }
     private void showHelp() {
         new AlertDialog.Builder(this).setTitle("How ROM Shelf works")
-            .setMessage("1. Select the ROM folder and the Johnemulators/GBA/save folder for shared .sav files. Set Pizza Boy's Save folder to this same directory. John GBA remains installed with its data, but ROM Shelf launches every game through the selected Pizza Boy version.\n2. Tap a cover to play; long-press it for save, title, and artwork options.\n3. Enable screenshot covers and choose Pictures/Pizza Boy A Screenshots. Pizza Boy names screenshots by time, so ROM Shelf associates the newest screenshot taken during a game's launch session with that game when you return. Take the screenshot after reaching the save point you want shown. ROM Shelf copies it into its own cover cache. You can also import a screenshot directly for one game.\n\nRecent activity compares the shared battery-save time with the last completed ROM Shelf launch session, shown in Eastern Time. In Pizza Boy, Auto Load Stat and Auto Save Stat with slot 1 selected restore and update its automatic state. Android keeps Pizza's state files private, so ROM Shelf cannot read their exact file timestamps; the session time is an activity estimate. Identical ROM content hashes appear once; original files are not deleted.")
+            .setMessage("1. Select the ROM folder and the Johnemulators/GBA/save folder for shared .sav files. Set Pizza Boy's Save folder to this same directory. John GBA remains installed with its data, but ROM Shelf launches every game through the selected Pizza Boy version.\n2. Tap a cover to play; long-press it for save, title, and artwork options.\n3. Enable screenshot covers and choose Pictures/Pizza Boy A Screenshots. Pizza Boy names screenshots by time, so ROM Shelf associates the newest screenshot taken during a game's launch session with that game when you return. Take the screenshot after reaching the save point you want shown. ROM Shelf copies it into its own cover cache. You can also import a screenshot directly for one game.\n\nRecent saves compare the shared battery .sav time with the Pizza quickstate activity estimate recorded when you return from Pizza to ROM Shelf; the newest known time wins and appears in Eastern Time. In Pizza Boy, keep Auto Load Stat and Auto Save Stat enabled with automatic slot 1 selected. Android keeps Pizza's state files private, so ROM Shelf cannot read their exact file timestamps; the quickstate time is a session-return estimate, not a direct .stat timestamp. Identical ROM content hashes appear once; original files are not deleted.")
             .setPositiveButton("OK",null).show();
     }
     private void pickFolder(int request) {

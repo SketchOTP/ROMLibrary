@@ -1,0 +1,49 @@
+{
+  "recorded_at_utc": "2026-11-13T21:01:22Z",
+  "task": "D-ROM-SHELF-QUICKSTATE-INCLUSIVE-20261113",
+  "release": {
+    "version_name": "0.3.8",
+    "version_code": 11,
+    "application_id": "com.animus.romshelf.launcher",
+    "signed_apk": "artifacts/rom-shelf/apk/ROM-Shelf-0.3.8.apk",
+    "signed_apk_sha256": "09fd9a0868f7e8657937b9fbd7b7d896c73aa8fe2b7951c53c0f9c0a00a3efec",
+    "unsigned_aligned_apk": "artifacts/rom-shelf/apk/ROM-Shelf-0.3.8-unsigned-aligned.apk",
+    "unsigned_aligned_sha256": "4af2c23aa7c6229b2eece0fe7ed8f334e16bba160a5fc0cb3f5631956d0a3fb5",
+    "zipalign_check": "passed",
+    "apksigner_verify": "passed for v2 and v3",
+    "certificate_sha256": "b094cd94d6975c3c62c467658d38523091c638068b9fb3b06d0d2998a19d2456"
+  },
+  "build": {
+    "command": "./gradlew testDebugUnitTest assembleRelease lintVitalRelease",
+    "status": "passed",
+    "unit_test_counts": {
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "release_lint_vital": "passed"
+  },
+  "implementation": {
+    "recent_selection": "Maximum timestamp across shared battery .sav, Pizza quickstate activity estimate, and retained Pizza session timestamp",
+    "quickstate_marker": "Recorded when the user returns from a ROM Shelf-launched Pizza session; with Auto Save Stat enabled this estimates the automatic quickstate update time",
+    "quickstate_label": "Pizza quickstate estimate",
+    "timestamp_limit": "This is a session-return estimate, not the .stat file mtime. ROM Shelf cannot read Pizza Boy's private Android/data directory on current Android.",
+    "launch_target": "Pizza Boy family only"
+  },
+  "device": {
+    "device": "Owner Pixel 11 Pro Fold via wireless ADB",
+    "android_api": 37,
+    "installed_version": "0.3.8 / versionCode 11",
+    "install": "adb install -r succeeded over the existing package and app data",
+    "foreground_after_check": "ROM Shelf MainActivity",
+    "sort_menu_observed": "Recent saves (battery save + Pizza quickstate)",
+    "library_observed": "49 games; Monomyth remains first with its retained Pizza session timestamp",
+    "pizza_state_handling_during_this_update_check": "Pizza was not launched and no Pizza state file was read or rewritten"
+  },
+  "limitations": [
+    "Android restricts access to another app's external app-specific Android/data directory, including ACTION_OPEN_DOCUMENT and ACTION_OPEN_DOCUMENT_TREE; ROM Shelf cannot inspect live Pizza .stat modification times.",
+    "The newest known marker wins in Recent, but the Pizza quickstate marker is inferred from return time. An exact newest-.stat-versus-.sav guarantee requires Pizza Boy to expose quickstate metadata through shared storage or a supported API.",
+    "This verification confirmed installation and the new sort menu; it did not reopen a game or qualify a fresh quickstate reload."
+  ]
+}

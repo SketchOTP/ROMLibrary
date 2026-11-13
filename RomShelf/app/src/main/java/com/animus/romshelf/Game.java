@@ -19,6 +19,8 @@ final class Game {
     final List<String> saveStems = new ArrayList<>();
     DocumentFile sharedSave;
     long sharedStamp;
+    // Estimated from returning from Pizza; Android hides Pizza's actual .stat mtime.
+    long pizzaQuickStateStamp;
     long pizzaSessionStamp;
     String fingerprint;
 
@@ -70,6 +72,7 @@ final class Game {
         for (String oldKey : other.legacyKeys) if (!legacyKeys.contains(oldKey)) legacyKeys.add(oldKey);
         for (String s : other.saveStems) if (!saveStems.contains(s)) saveStems.add(s);
         if (other.sharedSave != null && (sharedSave == null || other.sharedStamp > sharedStamp)) { sharedSave = other.sharedSave; sharedStamp = other.sharedStamp; }
+        pizzaQuickStateStamp = Math.max(pizzaQuickStateStamp, other.pizzaQuickStateStamp);
         pizzaSessionStamp = Math.max(pizzaSessionStamp, other.pizzaSessionStamp);
     }
 
@@ -84,19 +87,23 @@ final class Game {
         copy.title = title;
         copy.version = version;
         copy.fingerprint = fingerprint;
+        copy.pizzaQuickStateStamp = pizzaQuickStateStamp;
         copy.pizzaSessionStamp = pizzaSessionStamp;
         copy.saveStems.clear(); copy.saveStems.addAll(saveStems);
         copy.legacyKeys.clear(); copy.legacyKeys.addAll(legacyKeys);
         return copy;
     }
 
-    static long newestActivityTime(long batterySaveMillis, long pizzaSessionMillis) {
-        return Math.max(Math.max(0, batterySaveMillis), Math.max(0, pizzaSessionMillis));
+    static long newestActivityTime(long batterySaveMillis, long pizzaQuickStateMillis, long pizzaSessionMillis) {
+        return Math.max(Math.max(Math.max(0, batterySaveMillis), Math.max(0, pizzaQuickStateMillis)),
+            Math.max(0, pizzaSessionMillis));
     }
-    long lastPlayedEstimate() { return newestActivityTime(sharedStamp, pizzaSessionStamp); }
+    long lastPlayedEstimate() { return newestActivityTime(sharedStamp, pizzaQuickStateStamp, pizzaSessionStamp); }
     String activitySource() {
+        if (pizzaQuickStateStamp > 0 && pizzaQuickStateStamp >= Math.max(sharedStamp, pizzaSessionStamp)) return "Pizza quickstate estimate";
         if (pizzaSessionStamp > sharedStamp) return "Pizza session";
-        return sharedStamp > 0 ? "Battery save" : (pizzaSessionStamp > 0 ? "Pizza session" : "Not played");
+        if (sharedStamp >= pizzaSessionStamp && sharedStamp > 0) return "Battery save";
+        return pizzaSessionStamp > 0 ? "Pizza session" : "Not played";
     }
     String saveStatus() { return sharedSave != null ? "SAVED" : "NO SAVE"; }
     String nameForSave() { return stem + ".sav"; }

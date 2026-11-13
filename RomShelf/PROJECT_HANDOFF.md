@@ -88,3 +88,11 @@ The owner's current focus is to launch every title through Pizza Boy and treat t
 - **Platform limit:** Android prevents ROM Shelf from selecting/reading Pizza Boy's `Android/data` tree. Therefore ROM Shelf cannot directly compare a live `.stat` modification time against `.sav` or prove which file is newer. Pizza's own automatic slot restores/updates the state; ROM Shelf's session timestamp improves recency but is not a direct state-file timestamp. A direct comparison requires Pizza Boy to expose state timestamps through shared storage or an integration API. Do not claim exact quickstate recency from the current app-side timestamp.
 
 Evidence: `.authority/setup/rom-shelf-quickstate-recency-20261113.json`.
+
+## Follow-up — quickstate-inclusive Recent — 2026-11-13
+
+ROM Shelf 0.3.8 treats Pizza's automatic quickstate activity as a recent-progress marker alongside the shared battery `.sav` timestamp. When a game launched from ROM Shelf returns to it, the app records a Pizza quickstate activity estimate and sorts by the newest available timestamp across that estimate, the shared `.sav`, and retained legacy Pizza-session records. Cards and details identify which marker won.
+
+This marker is recorded at Pizza-session return because Auto Save Stat is enabled on the Pixel; it is not a read of the `.stat` file's actual modification time. Android does not allow ROM Shelf to read Pizza's app-specific `Android/data` state directory, even with the all-files permission, so an exact live `.stat` versus `.sav` comparison remains unavailable. The Pixel's direct Pizza auto-state files are preserved/managed by Pizza Boy; ROM Shelf does not copy or overwrite them.
+
+Release evidence: `.authority/setup/rom-shelf-quickstate-recency-0.3.8-20261113.json`.

@@ -351,3 +351,17 @@ SUPERSEDES: none
 EVIDENCE: .authority/setup/rom-shelf-quickstate-recency-20261113.json; RomShelf/PROJECT_HANDOFF.md; Pixel device verification
 SUMMARY: Accepted the 0.3.7 session-aware Recent behavior, Pizza auto-state configuration, and installed update. Exact quickstate timestamps remain unavailable to the app under Android storage restrictions; UI recency therefore uses an honest session-return estimate rather than claiming an exact .stat comparison.
 NEXT: Do not represent the session timestamp as the Pizza state-file save time. Revisit direct comparison only if Pizza exposes state metadata through shared storage or a supported integration API.
+
+## A6-CHECKPOINT-ROM-SHELF-QUICKSTATE-INCLUSIVE-038-20261113 — CHECKPOINT
+
+ENTRY_ID: A6-CHECKPOINT-ROM-SHELF-QUICKSTATE-INCLUSIVE-038-20261113
+UTC: 2026-11-13T21:01:22Z
+ACTOR: Codex
+TYPE: CHECKPOINT
+GOAL: A6-GOAL-ROM-SHELF-SHARED-PIZZA-20261113
+TASK: D-ROM-SHELF-QUICKSTATE-INCLUSIVE-20261113
+STATUS: PARTIAL
+SUPERSEDES: A6-CHECKPOINT-ROM-SHELF-QUICKSTATE-RECENCY-20261113
+EVIDENCE: .authority/setup/rom-shelf-quickstate-recency-0.3.8-20261113.json; RomShelf/app/build/test-results/testDebugUnitTest/TEST-com.animus.romshelf.SafetyRegressionTest.xml; Pixel wireless ADB observation
+SUMMARY: 0.3.8/versionCode 11 adds a distinct Pizza quickstate activity estimate to the Recent comparison; the newest of it, the shared `.sav`, and legacy Pizza-session markers determines sort order and label. Eight unit tests, release assembly/lint, expected-certificate v2/v3 signature, zip alignment, in-place Pixel install, and the new sort-menu label passed. No emulator session or state file was opened during this update verification.
+NEXT: Pizza's exact private `.stat` modification time remains unavailable to ROM Shelf under Android scoped storage. Keep the estimate explicit; exact comparison needs supported emulator metadata.

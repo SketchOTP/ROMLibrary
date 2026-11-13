@@ -124,3 +124,15 @@ SUPERSEDES: A6-CHECKPOINT-ROM-SHELF-036-PREP-20261113
 EVIDENCE: .authority/setup/rom-shelf-quickstate-recency-20261113.json; RomShelf/PROJECT_HANDOFF.md; artifacts/rom-shelf/apk/ROM-Shelf-0.3.7.apk
 SUMMARY: ROM Shelf 0.3.7/versionCode 10 is signed with the established owner certificate and installed over the existing Pixel app data. All game cards still use the global Pizza Boy launch route. Pizza Auto Load Stat and Auto Save Stat are enabled with automatic slot 1. Recent sorting now compares shared battery-save time to the last completed ROM Shelf → Pizza session return time and labels the date source. Eight unit tests, release build, lint vital, signature and alignment checks passed. The app cannot directly read Pizza's private state timestamps; Monomyth's slot was rewritten during verification, so test time is not owner play-time evidence. A pre-change state/preview copy remains outside the repo.
 NEXT: A direct guarantee that the newest `.stat` or `.sav` wins requires Pizza Boy to expose state timestamps via shared storage or a supported API. Keep the session timestamp explicitly labeled as an estimate; do not claim exact state-file comparison.
+
+ENTRY_ID: A6-CHECKPOINT-ROM-SHELF-QUICKSTATE-INCLUSIVE-038-20261113
+UTC: 2026-11-13T21:01:22Z
+ACTOR: Codex
+TYPE: CHECKPOINT
+GOAL: A6-GOAL-ROM-SHELF-SHARED-PIZZA-20261113
+TASK: D-ROM-SHELF-QUICKSTATE-INCLUSIVE-20261113
+STATUS: PARTIAL
+SUPERSEDES: A6-CHECKPOINT-ROM-SHELF-QUICKSTATE-RECENCY-20261113
+EVIDENCE: .authority/setup/rom-shelf-quickstate-recency-0.3.8-20261113.json; RomShelf/PROJECT_HANDOFF.md; artifacts/rom-shelf/apk/ROM-Shelf-0.3.8.apk
+SUMMARY: ROM Shelf 0.3.8/versionCode 11 records a Pizza quickstate activity estimate when returning from a Shelf-launched Pizza session and sorts Recent by the maximum of that estimate, the shared `.sav` time, and retained Pizza session time. Release build, eight unit tests, lint vital, signature/alignment checks, in-place Pixel installation, and the new sort-menu label were verified. Pixel Auto Load Stat/Auto Save Stat are configured with slot 1. The app still cannot read the exact private `.stat` mtime; Monomyth's existing session stamp remains explicitly a session estimate, not evidence of owner play time.
+NEXT: Exact quickstate-file versus battery-save timestamp ranking remains dependent on Pizza Boy exposing quickstate metadata through shared storage or a supported integration API.
