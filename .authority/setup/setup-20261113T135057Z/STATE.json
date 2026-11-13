@@ -7,5 +7,5 @@
   "resume": false,
   "source_snapshot": "pinned",
   "receipts": "receipts.jsonl",
-  "next": "Push the current ROM Shelf source and signed 0.3.1 artifact to SketchOTP/ROMLibrary, then complete owner-controlled ROM, save, and emulator acceptance workflows."
+  "next": "Complete owner-controlled ROM, save, and emulator acceptance workflows on the Pixel when a disposable fixture is available; the source and signed 0.3.1 update are on SketchOTP/ROMLibrary main."
 }

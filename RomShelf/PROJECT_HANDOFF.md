@@ -34,7 +34,7 @@ Source inspection confirms corresponding code paths exist. It does not prove act
 
 ## Follow-up fixes after source review — 2026-11-13
 
-The following source changes supersede the applicable open code findings above. They are local working-source changes on top of the preserved frozen archive; the archived source and supplied APK remain unchanged.
+The following source changes supersede the applicable open code findings above. They began as working-source changes on top of the preserved frozen archive and were pushed to [SketchOTP/ROMLibrary](https://github.com/SketchOTP/ROMLibrary) on `main` in commit `fa60e8107f4276d99858285c5d646d31b2bba136`; the archived source and supplied APK remain unchanged.
 
 - **Save target identity:** transfer, import, and restore now pass the exact selected `DocumentFile` through backup and write. They no longer re-resolve a same-named root file when the selected save is nested. New files are deleted after failed creation/write verification, and backups are staged, synced, and assigned unique names before commit.
 - **Artwork fetch boundary:** AI image URLs must use HTTPS on the exact `thumbnails.libretro.com` host. Redirects are checked against the same policy. Arbitrary AI image hosts are rejected; catalog or manual art remains available. Source links are only opened after a user tap.

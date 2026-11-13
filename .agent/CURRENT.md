@@ -67,3 +67,17 @@ SUPERSEDES: A6-CHECKPOINT-ROM-SHELF-UPDATE-20261113
 EVIDENCE: .authority/setup/setup-20261113T135057Z/rom-shelf-build.json; .authority/setup/setup-20261113T135057Z/rom-shelf-device.json; artifacts/rom-shelf/apk/ROM-Shelf-0.3.1.apk
 SUMMARY: Signed 0.3.1/versionCode 4 with the original signer after certificate match, installed it in place over Pixel 0.3.0, verified the installed APK signer, and started MainActivity successfully. The signed artifact and source are prepared for the requested GitHub push; ROM/save/emulator feature acceptance remains open.
 NEXT: Commit and push this repository to SketchOTP/ROMLibrary using the supplied Git identity, then finish owner-controlled ROM/save/emulator acceptance when a fixture is available.
+
+## A6-CHECKPOINT-ROM-LIBRARY-PUBLISHED-20261113 — source and signed update pushed
+
+ENTRY_ID: A6-CHECKPOINT-ROM-LIBRARY-PUBLISHED-20261113
+UTC: 2026-11-13T16:18:55Z
+ACTOR: Codex
+TYPE: CHECKPOINT
+GOAL: A6-GOAL-ROM-SHELF-20261113
+TASK: D-ROM-SHELF-PUBLISH-20261113
+STATUS: PARTIAL
+SUPERSEDES: A6-CHECKPOINT-ROM-SHELF-SIGNED-UPDATE-20261113
+EVIDENCE: .authority/setup/setup-20261113T135057Z/rom-shelf-build.json; .authority/setup/setup-20261113T135057Z/rom-shelf-device.json; .authority/setup/setup-20261113T135057Z/coverage.json
+SUMMARY: Pushed source, Authority setup, preserved provenance, and signed 0.3.1 APK to SketchOTP/ROMLibrary main at fa60e8107f4276d99858285c5d646d31b2bba136 with author SketchOTP <sketchotp@gmail.com>. Remote ref matched and the current workspace is connected to origin/main. Pixel update and launcher smoke test passed; product-level emulator/save acceptance remains open.
+NEXT: Use a disposable owner-controlled ROM/save fixture to verify SAF grants, scan/dedup behavior, save operations, and John GBA/Pizza Boy loading without touching existing game data.

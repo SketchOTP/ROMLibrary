@@ -1,6 +1,6 @@
 {
   "schema_version": "authority.setup-coverage.v1",
-  "recorded_at": "2026-11-13T16:10:00Z",
+  "recorded_at": "2026-11-13T16:18:55Z",
   "overall_status": "PARTIAL",
   "authority_runtime": {
     "result": "PASSED",
@@ -54,7 +54,13 @@
       "signature": "PASSED; expected signer fingerprint matched"
     },
     "device": "Pixel 11 Pro Fold updated in place from 0.3.0/versionCode 3 to 0.3.1/versionCode 4; installed APK signer verified against expected fingerprint",
-    "device_ui_acceptance": "PARTIAL; signed update succeeded and MainActivity launch returned Status: ok with a live app process; ROM/save/emulator feature flows remain untested"
+    "device_ui_acceptance": "PARTIAL; signed update succeeded and MainActivity launch returned Status: ok with a live app process; ROM/save/emulator feature flows remain untested",
+    "repository_push": {
+      "remote": "git@github.com:SketchOTP/ROMLibrary.git",
+      "branch": "main",
+      "commit": "fa60e8107f4276d99858285c5d646d31b2bba136",
+      "push": "PASSED and remote ref verified"
+    }
   },
   "not_run": [
     "Fresh Codex Desktop session and native discovery",

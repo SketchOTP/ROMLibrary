@@ -183,3 +183,45 @@ SUPERSEDES: none
 EVIDENCE: artifacts/rom-shelf/apk/ROM-Shelf-0.3.1.apk; .authority/setup/setup-20261113T135057Z/coverage.json
 SUMMARY: The signed update is installed and verified on the Pixel; the artifact is ready for the user-authorized repository push. No private key material was added to the workspace.
 NEXT: Push the repository, then continue product acceptance with controlled fixtures.
+
+## A6-WORKER-ROM-LIBRARY-PUBLISH-20261113 — WORKER_REPORT
+
+ENTRY_ID: A6-WORKER-ROM-LIBRARY-PUBLISH-20261113
+UTC: 2026-11-13T16:19:47Z
+ACTOR: authority-cli
+TYPE: WORKER_REPORT
+GOAL: see .agent/GOAL.md
+TASK: see .agent/CURRENT.md
+STATUS: REPORTED
+SUPERSEDES: none
+EVIDENCE: .authority/setup/setup-20261113T135057Z/rom-shelf-build.json; .authority/setup/setup-20261113T135057Z/coverage.json; artifacts/rom-shelf/apk/ROM-Shelf-0.3.1.apk
+SUMMARY: Committed the reviewed ROM Shelf source, Authority 6.0 setup, provenance artifacts, and signed 0.3.1 APK, then pushed to origin/main with author SketchOTP and the supplied email. The signing keystore and password were excluded.
+NEXT: Keep the local checkout connected to origin/main and continue product acceptance.
+
+## A6-VERIFIER-ROM-LIBRARY-PUBLISH-20261113 — VERIFICATION
+
+ENTRY_ID: A6-VERIFIER-ROM-LIBRARY-PUBLISH-20261113
+UTC: 2026-11-13T16:19:47Z
+ACTOR: authority-cli
+TYPE: VERIFICATION
+GOAL: see .agent/GOAL.md
+TASK: see .agent/CURRENT.md
+STATUS: PASSED
+SUPERSEDES: none
+EVIDENCE: .authority/setup/setup-20261113T135057Z/rom-shelf-build.json; .gitignore; .authority/setup/setup-20261113T135057Z/coverage.json
+SUMMARY: Remote main resolved to fa60e8107f4276d99858285c5d646d31b2bba136; local checkout is clean at push time and remote LICENSE was preserved. Staged secret-path scan found no keystore, backup ZIP, or credential file.
+NEXT: Keep emulator and save workflows marked unverified until controlled fixtures are exercised.
+
+## A6-CONDUCTOR-ROM-LIBRARY-PUBLISH-20261113 — CONDUCTOR_DISPOSITION
+
+ENTRY_ID: A6-CONDUCTOR-ROM-LIBRARY-PUBLISH-20261113
+UTC: 2026-11-13T16:19:47Z
+ACTOR: authority-cli
+TYPE: CONDUCTOR_DISPOSITION
+GOAL: see .agent/GOAL.md
+TASK: see .agent/CURRENT.md
+STATUS: PARTIAL
+SUPERSEDES: none
+EVIDENCE: .authority/setup/setup-20261113T135057Z/coverage.json; .authority/setup/setup-20261113T135057Z/rom-shelf-device.json
+SUMMARY: The code and signed update are published and installed. Full product acceptance remains partial because emulator launch, save pickup, and controlled SAF workflows were not tested.
+NEXT: Continue acceptance using owner-controlled disposable ROM and save fixtures.

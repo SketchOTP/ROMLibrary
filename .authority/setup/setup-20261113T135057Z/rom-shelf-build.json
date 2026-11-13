@@ -1,6 +1,6 @@
 {
   "schema_version": "rom-shelf.build-evidence.v1",
-  "recorded_at": "2026-11-13T16:10:00Z",
+  "recorded_at": "2026-11-13T16:18:55Z",
   "source": {
     "repository": "SketchOTP/tymwayne",
     "branch": "rom-shelf-apk-build",
@@ -75,5 +75,13 @@
       "certificate_sha256": "b094cd94d6975c3c62c467658d38523091c638068b9fb3b06d0d2998a19d2456",
       "verified": "PASSED for declared v2 and v3; no source stamp or v4 sidecar"
     }
+  },
+  "published_repository": {
+    "remote": "git@github.com:SketchOTP/ROMLibrary.git",
+    "branch": "main",
+    "commit": "fa60e8107f4276d99858285c5d646d31b2bba136",
+    "commit_author": "SketchOTP <sketchotp@gmail.com>",
+    "push": "PASSED; remote ref verified with git ls-remote",
+    "local_worktree": "connected to origin/main and clean at commit creation"
   }
 }
