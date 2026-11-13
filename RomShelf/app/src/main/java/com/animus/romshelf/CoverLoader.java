@@ -1,0 +1,279 @@
+package com.animus.romshelf;
+
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
+import android.os.Handler;
+import android.os.Looper;
+import android.text.Html;
+import android.widget.ImageView;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.nio.file.Files;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+final class CoverLoader {
+    private static final String BASE = "https://thumbnails.libretro.com/Nintendo%20-%20Game%20Boy%20Advance/Named_Boxarts/";
+    private static final Pattern ENTRY = Pattern.compile("(?i)href=\\\"([^\\\"]+\\.png)\\\"");
+    private final Context context;
+    private final SharedPreferences prefs;
+    private final ExecutorService workers = Executors.newFixedThreadPool(3);
+    private final Handler main = new Handler(Looper.getMainLooper());
+    private final File cached;
+    private final File custom;
+    private List<String> catalog;
+    private long attemptedCatalog;
+
+    CoverLoader(Context c) {
+        context = c.getApplicationContext();
+        prefs = c.getSharedPreferences("rom_shelf_covers", Context.MODE_PRIVATE);
+        cached = new File(c.getFilesDir(), "covers/autofetch");
+        custom = new File(c.getFilesDir(), "covers/custom");
+        cached.mkdirs(); custom.mkdirs();
+    }
+
+    void show(Game game, ImageView image) {
+        final String tag = game.key;
+        image.setTag(tag);
+        File manual = new File(custom, tag + ".img");
+        File auto = new File(cached, tag + ".png");
+        File file = manual.isFile() ? manual : auto;
+        if (file.isFile()) {
+            Bitmap bitmap = readScaled(file);
+            if (bitmap != null) { image.setImageBitmap(bitmap); return; }
+        }
+        File failed = new File(cached, tag + ".missing");
+        if (failed.exists() && System.currentTimeMillis() - failed.lastModified() < 12L * 3600 * 1000) return;
+        workers.execute(() -> {
+            File target = new File(cached, tag + ".png");
+            boolean ok = target.isFile();
+            if (!ok) {
+                String url = prefs.getString("url_" + tag, null);
+                if (url != null) ok = download(url, target);
+                if (!ok) {
+                    Set<String> names = new LinkedHashSet<>(Arrays.asList(game.stem, game.title, game.title + " (USA)", game.title + " (USA, Europe)", game.title + " (Europe)", game.title + " (Japan)"));
+                    for (String s : names) {
+                        if (download(BASE + urlName(s + ".png"), target)) { ok = true; break; }
+                    }
+                }
+                if (!ok) {
+                    String match = bestCatalogFile(game.title, game.stem);
+                    if (match != null) ok = download(BASE + urlName(match), target);
+                }
+            }
+            if (!ok) {
+                try { failed.createNewFile(); } catch (Exception ignored) { }
+                return;
+            }
+            failed.delete();
+            Bitmap bitmap = readScaled(target);
+            if (bitmap != null) main.post(() -> {
+                if (tag.equals(image.getTag()) && image.isAttachedToWindow()) image.setImageBitmap(bitmap);
+            });
+        });
+    }
+
+    void setAiImage(Game game, String imageUrl, String website) {
+        if (!ArtworkUrlPolicy.isAllowedImageUrl(imageUrl)) return;
+        prefs.edit().putString("url_" + game.key, imageUrl).putString("source_" + game.key,
+            ArtworkUrlPolicy.isAllowedSourceUrl(website) ? website : "").apply();
+        new File(cached, game.key + ".png").delete();
+        new File(cached, game.key + ".missing").delete();
+    }
+
+    void clearAiImage(Game game) {
+        prefs.edit().remove("url_" + game.key).remove("source_" + game.key).apply();
+        invalidate(game);
+    }
+
+    void migrateIdentity(Game game) {
+        for (String oldKey : game.legacyKeys) {
+            if (oldKey.equals(game.key)) continue;
+            copyPreference("url_" + oldKey, "url_" + game.key);
+            copyPreference("source_" + oldKey, "source_" + game.key);
+            copyFile(new File(cached, oldKey + ".png"), new File(cached, game.key + ".png"));
+            copyFile(new File(cached, oldKey + ".missing"), new File(cached, game.key + ".missing"));
+            copyFile(new File(custom, oldKey + ".img"), new File(custom, game.key + ".img"));
+        }
+    }
+
+    private void copyPreference(String from, String to) {
+        if (prefs.contains(to)) return;
+        String value = prefs.getString(from, null);
+        if (value != null) prefs.edit().putString(to, value).apply();
+    }
+
+    private static void copyFile(File from, File to) {
+        if (!from.isFile() || to.exists()) return;
+        try { Files.copy(from.toPath(), to.toPath()); } catch (Exception ignored) { }
+    }
+
+    String sourceFor(Game game) { return prefs.getString("source_" + game.key, ""); }
+
+    void invalidate(Game game) {
+        new File(cached, game.key + ".png").delete();
+        new File(cached, game.key + ".missing").delete();
+    }
+
+    private static String urlName(String name) {
+        try { return URLEncoder.encode(name, "UTF-8").replace("+", "%20"); }
+        catch (Exception e) { return name; }
+    }
+
+    private synchronized String bestCatalogFile(String title, String stem) {
+        List<String> list = getCatalog();
+        String target = normal(title), original = normal(stem);
+        String best = null;
+        double score = 0.0;
+        for (String file : list) {
+            String bare = file.replaceFirst("(?i)\\.png$", "").replaceAll("\\([^)]*\\)", " ").trim();
+            double a = similarity(target, normal(bare));
+            double b = similarity(original, normal(bare));
+            double candidate = Math.max(a, b);
+            if (candidate > score) { score = candidate; best = file; }
+        }
+        // Conservative threshold: do not attach misleading official art to similarly named fan hacks.
+        return score >= 0.88 ? best : null;
+    }
+
+    private synchronized List<String> getCatalog() {
+        if (catalog != null) return catalog;
+        File local = new File(context.getFilesDir(), "gba-cover-index.txt");
+        if (local.isFile() && System.currentTimeMillis() - local.lastModified() < 7L * 86400000L) {
+            try (InputStream stream = new java.io.FileInputStream(local)) {
+                String all = new String(readLimited(stream, 3 * 1024 * 1024), "UTF-8");
+                catalog = Arrays.asList(all.split("\\n"));
+                return catalog;
+            } catch (Exception ignored) { }
+        }
+        if (System.currentTimeMillis() - attemptedCatalog < 60000) return new ArrayList<>();
+        attemptedCatalog = System.currentTimeMillis();
+        List<String> names = new ArrayList<>();
+        HttpURLConnection conn = null;
+        try {
+            conn = (HttpURLConnection) new URL(BASE).openConnection();
+            conn.setConnectTimeout(5000); conn.setReadTimeout(8000);
+            conn.setRequestProperty("User-Agent", "ROM-Shelf/0.2");
+            if (conn.getResponseCode() != 200) return names;
+            String html = new String(readLimited(conn.getInputStream(), 4 * 1024 * 1024), "UTF-8");
+            Matcher matcher = ENTRY.matcher(html);
+            Set<String> unique = new LinkedHashSet<>();
+            while (matcher.find()) {
+                String name = URLDecoder.decode(matcher.group(1).replace("+", "%2B"), "UTF-8");
+                name = Html.fromHtml(name, Html.FROM_HTML_MODE_LEGACY).toString();
+                if (!name.contains("/") && name.endsWith(".png")) unique.add(name);
+            }
+            names.addAll(unique);
+            if (names.size() >= 200) {
+                try (FileOutputStream out = new FileOutputStream(local)) {
+                    out.write(android.text.TextUtils.join("\n", names).getBytes("UTF-8"));
+                }
+                catalog = names;
+            }
+        } catch (Exception ignored) { }
+        finally { if (conn != null) conn.disconnect(); }
+        return names;
+    }
+
+    private static String normal(String s) {
+        return s.toLowerCase(Locale.ROOT).replace("é", "e")
+            .replaceAll("(?i)\\b(?:the|a|an)\\b", "")
+            .replaceAll("[^a-z0-9]", "");
+    }
+
+    private static double similarity(String a, String b) {
+        if (a.isEmpty() || b.isEmpty()) return 0;
+        if (a.equals(b)) return 1.0;
+        if (a.length() < 5 || b.length() < 5) return 0;
+        int[] prior = new int[b.length() + 1], next = new int[b.length() + 1];
+        for (int j = 0; j <= b.length(); j++) prior[j] = j;
+        for (int i = 1; i <= a.length(); i++) {
+            next[0] = i;
+            for (int j = 1; j <= b.length(); j++)
+                next[j] = Math.min(Math.min(next[j-1] + 1, prior[j] + 1), prior[j-1] + (a.charAt(i-1) == b.charAt(j-1) ? 0 : 1));
+            int[] tmp = prior; prior = next; next = tmp;
+        }
+        return 1.0 - ((double) prior[b.length()] / Math.max(a.length(), b.length()));
+    }
+
+    private boolean download(String uri, File target) {
+        if (!ArtworkUrlPolicy.isAllowedImageUrl(uri)) return false;
+        HttpURLConnection conn = null;
+        try {
+            String current = uri;
+            for (int redirects = 0; redirects < 3; redirects++) {
+                if (!ArtworkUrlPolicy.isAllowedImageUrl(current)) return false;
+                conn = (HttpURLConnection) new URL(current).openConnection();
+                conn.setConnectTimeout(4000); conn.setReadTimeout(6500);
+                conn.setInstanceFollowRedirects(false);
+                conn.setRequestProperty("User-Agent", "ROM-Shelf/0.2");
+                int code = conn.getResponseCode();
+                if (code == 301 || code == 302 || code == 307 || code == 308) {
+                    String to = conn.getHeaderField("Location");
+                    current = new URL(new URL(current), to).toString();
+                    conn.disconnect(); conn = null;
+                    continue;
+                }
+                if (code != 200 || conn.getContentLengthLong() > 5L * 1024 * 1024) return false;
+                String mime = conn.getContentType();
+                if (mime != null && !mime.toLowerCase(Locale.ROOT).startsWith("image/")) return false;
+                byte[] data = readLimited(conn.getInputStream(), 5 * 1024 * 1024);
+                if (BitmapFactory.decodeByteArray(data, 0, data.length) == null) return false;
+                try (FileOutputStream out = new FileOutputStream(target)) { out.write(data); }
+                return true;
+            }
+        } catch (Exception ignored) { }
+        finally { if (conn != null) conn.disconnect(); }
+        return false;
+    }
+
+    private static byte[] readLimited(InputStream in, int limit) throws Exception {
+        try (InputStream input = in; ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            byte[] buf = new byte[8192]; int n;
+            while ((n = input.read(buf)) != -1) {
+                out.write(buf, 0, n);
+                if (out.size() > limit) throw new IllegalStateException("Download is too large");
+            }
+            return out.toByteArray();
+        }
+    }
+
+    private Bitmap readScaled(File f) {
+        try {
+            BitmapFactory.Options bounds = new BitmapFactory.Options();
+            bounds.inJustDecodeBounds = true;
+            BitmapFactory.decodeFile(f.getAbsolutePath(), bounds);
+            if (bounds.outWidth <= 0 || bounds.outHeight <= 0) return null;
+            BitmapFactory.Options opts = new BitmapFactory.Options();
+            int sample = 1;
+            while (bounds.outWidth / sample > 650 || bounds.outHeight / sample > 900) sample *= 2;
+            opts.inSampleSize = sample;
+            return BitmapFactory.decodeFile(f.getAbsolutePath(), opts);
+        } catch (Exception e) { return null; }
+    }
+
+    void importCover(Game game, Uri uri) throws Exception {
+        File selected = new File(custom, game.key + ".img");
+        InputStream in = context.getContentResolver().openInputStream(uri);
+        if (in == null) throw new IllegalStateException("Image could not be opened");
+        AtomicCoverFile.replaceFrom(in, selected, 10 * 1024 * 1024, file -> readScaled(file) != null);
+    }
+    boolean removeCustom(Game game) { return new File(custom, game.key + ".img").delete(); }
+}

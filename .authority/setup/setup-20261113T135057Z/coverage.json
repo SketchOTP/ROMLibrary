@@ -1,0 +1,73 @@
+{
+  "schema_version": "authority.setup-coverage.v1",
+  "recorded_at": "2026-11-13T16:10:00Z",
+  "overall_status": "PARTIAL",
+  "authority_runtime": {
+    "result": "PASSED",
+    "snapshot_observed_in_browser": "snap-20261113T145135Z-153d68caf3-432f5aa3",
+    "eligible_files": 115,
+    "journey_records": 5,
+    "evidence_links": 39,
+    "fts5": true,
+    "database_integrity": "ok",
+    "checks": [
+      "CLI exact path and code symbol lookup",
+      "Journey ID lookup and bounded context",
+      "no-hit fallback and pagination without duplicate pages",
+      "unchanged refresh idempotency",
+      "audit_runtime PASSED",
+      "disposable rename identity continuity and old-path alias",
+      "record appender duplicate idempotency",
+      "incomplete identity ledger rejected without mutation"
+    ],
+    "final_audit": {
+      "snapshot_id": "snap-20261113T145602Z-0e14abb295-36d6d6a6b5",
+      "status": "PASSED",
+      "eligible_files": 115,
+      "journey_records": 9,
+      "edges": 39,
+      "fts5": true,
+      "database_integrity": "ok"
+    }
+  },
+  "viewer": {
+    "result": "PASSED",
+    "checks": [
+      "Both layer loaded",
+      "Code path search displayed source details",
+      "Journey entry ID search displayed canonical source evidence",
+      "empty Both search paged beyond 20 without duplicate page entries",
+      "SVG clearGraph lastChild bug fixed to use lastElementChild"
+    ]
+  },
+  "rom_shelf": {
+    "release_build": "PASSED",
+    "lint_vital_release": "PASSED",
+    "zip_integrity": "PASSED",
+    "zipalign": "PASSED",
+    "unit_regression_tests": "7 local JVM tests passed; no instrumentation tests",
+    "apk_signature": "0.3.1 signed APK verified v2/v3 with expected certificate fingerprint; Gradle intermediate remains unsigned",
+    "update_candidate": {
+      "version_name": "0.3.1",
+      "version_code": 4,
+      "sha256": "954a1c6e082b799d6e24f0ced6439e771d45651c0bdd33acd9ae2e54860d0085",
+      "signature": "PASSED; expected signer fingerprint matched"
+    },
+    "device": "Pixel 11 Pro Fold updated in place from 0.3.0/versionCode 3 to 0.3.1/versionCode 4; installed APK signer verified against expected fingerprint",
+    "device_ui_acceptance": "PARTIAL; signed update succeeded and MainActivity launch returned Status: ok with a live app process; ROM/save/emulator feature flows remain untested"
+  },
+  "not_run": [
+    "Fresh Codex Desktop session and native discovery",
+    "ROM folder selection and persistent SAF grant behavior",
+    "Controlled-device ROM/ZIP scanning and duplicate presentation with owner fixtures",
+    "Battery save association/import/backup/restore using test fixtures",
+    "Real emulator launch and existing save pickup",
+    "ChatGPT OAuth, account model catalog, AI lookup, and live artwork fetching",
+    "Formal Authority scenarios A01-A23"
+  ],
+  "known_findings": [
+    "AI image retrieval deliberately accepts only the exact Libretro thumbnail host; other AI-suggested image hosts are unsupported for automatic fetching.",
+    "The project needs an owner-controlled disposable ROM/save fixture before device workflow acceptance.",
+    "The app cannot infer emulator ROM-load success from the ACTION_VIEW start result."
+  ]
+}

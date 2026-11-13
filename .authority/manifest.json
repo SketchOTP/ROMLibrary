@@ -1,0 +1,39 @@
+{
+  "schema_version": "authority.installation.v1",
+  "requested_authority_version": "6.0",
+  "resolved_authority_version": "6.0",
+  "installed_authority_version": "6.0-specification-and-workspace-adapter",
+  "setup_protocol": "1.2",
+  "adapter_contract": "1.0",
+  "repository_uuid": "09595a3f-1e8f-49e4-996c-b4064fa6c645",
+  "repository_root": "/home/sketch/Documents/PROJECTS/ROM Library",
+  "repository_mode": "NEW",
+  "source_lock": ".authority/setup/setup-20261113T135057Z/sources.lock.json",
+  "runtime": {
+    "basis": "LOCAL_SOURCE_IMPLEMENTED_NOT_AN_UPSTREAM_RELEASE",
+    "implementation": "repo-local Python/SQLite workspace source",
+    "version": "workspace-runtime/0.1.0",
+    "upstream_release": false
+  },
+  "native_entrypoint": "AGENTS.md",
+  "owned_paths": [
+    "AGENTS.md",
+    ".agent/",
+    ".authority/",
+    ".agents/skills/",
+    ".codex/agents/"
+  ],
+  "setup_status": "PARTIAL",
+  "product_goal": "ROM Shelf is a clean, intelligent Android GBA game library that automatically organizes ROMs into a beautiful cover-art grid, uses AI to identify games and find accurate artwork, eliminates duplicates, tracks save progress and recent activity, and launches any game seamlessly in the user's preferred emulator with its existing save—creating one simple, unified gaming experience.",
+  "capabilities": {
+    "journey_search": "implemented; CLI and browser smoke checked, disposable recovery fixtures passed",
+    "code_inventory": "implemented; 115-file baseline captured; semantic review pending",
+    "viewer": "browser interaction checked for Journey, Code, Both, details, and pagination",
+    "incremental_refresh": "unchanged refresh and rename/alias fixtures passed",
+    "fresh_codex_desktop_loading": "not run; fresh session required",
+    "hooks": "not configured",
+    "vector_search": "not implemented",
+    "model_routing": "host model not observed; no role override or benchmark claimed",
+    "parallel_workers": "profiles installed; actual parallel behavior not tested"
+  }
+}

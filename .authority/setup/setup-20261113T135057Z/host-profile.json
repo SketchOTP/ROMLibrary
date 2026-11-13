@@ -1,0 +1,78 @@
+{
+  "schema_version": "authority.host-profile.v1",
+  "observed_at": "2026-11-13T14:10:00Z",
+  "target": {
+    "product": "Codex",
+    "surface": "Desktop app",
+    "version": "26.1111.21308",
+    "version_evidence": "/usr/lib/chatgpt/ChatGPT --version and dpkg-query reported 26.1111.21308; active application context identifies this workspace as Codex Desktop"
+  },
+  "supporting_runner": {
+    "product": "Codex CLI",
+    "version": "0.169.0-alpha.11.1",
+    "evidence": "codex --version; supporting installation evidence, not substituted for Desktop identity"
+  },
+  "workspace": {
+    "path": "/home/sketch/Documents/PROJECTS/ROM Library",
+    "launch_directory": "/home/sketch/Documents/PROJECTS/ROM Library",
+    "git_root": null
+  },
+  "effective_instruction_chain": [
+    {
+      "path": "/home/sketch/.codex/AGENTS.md",
+      "status": "present_empty"
+    },
+    {
+      "path": "/home/sketch/Documents/PROJECTS/ROM Library/AGENTS.md",
+      "status": "created_by_this_setup"
+    },
+    {
+      "path": "/home/sketch/Documents/PROJECTS/ROM Library/AGENTS.override.md",
+      "status": "absent"
+    },
+    {
+      "path": "/home/sketch/.codex/AGENTS.override.md",
+      "status": "absent"
+    },
+    {
+      "path": "project_doc_fallback_filenames",
+      "status": "no configured value observed in ~/.codex/config.toml"
+    }
+  ],
+  "native_formats": {
+    "instructions": "AGENTS.md",
+    "skills": ".agents/skills/<name>/SKILL.md",
+    "custom_agents": ".codex/agents/<name>.toml",
+    "project_config": ".codex/config.toml (not needed)",
+    "hooks": ".codex/hooks.json or supported inline config (not needed)"
+  },
+  "capability_evidence": {
+    "documented_support": {
+      "instructions": "Codex instruction documentation checked 2026-11-13",
+      "skills": "Codex skill documentation checked 2026-11-13",
+      "custom_agents": "Codex custom-agent documentation checked 2026-11-13; requires name, description, developer_instructions"
+    },
+    "observed_working": {
+      "native_load": "NOT_OBSERVED_IN_A_FRESH_DESKTOP_SESSION",
+      "skills": "NOT_OBSERVED_IN_A_FRESH_DESKTOP_SESSION",
+      "custom_agents": "NOT_OBSERVED_IN_A_FRESH_DESKTOP_SESSION",
+      "hooks": "NOT_CONFIGURED",
+      "model_routing": "NOT_OBSERVABLE",
+      "per_role_model_selection": "NOT_CONFIGURED"
+    }
+  },
+  "target_session_verification": {
+    "status": "NOT_RUN",
+    "reason": "This setup turn began before repository instructions were written; no independent fresh Codex Desktop session was used."
+  },
+  "concurrent_worker_limit": {
+    "current_runtime": "four available orchestration slots in active Codex tool context",
+    "persistent_project_setting": "unset; no fixed limit written",
+    "verification": "profile discovery unverified"
+  },
+  "permissions": {
+    "repository_local_changes": "authorized by explicit setup request",
+    "global_settings_changed": false,
+    "external_services_changed": false
+  }
+}

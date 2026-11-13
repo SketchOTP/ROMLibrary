@@ -1,0 +1,41 @@
+{
+  "schema_version": "authority.setup-discovery.v1",
+  "run_id": "setup-20261113T135057Z",
+  "observed_at": "2026-11-13T14:10:00Z",
+  "requested_authority_version": "6.0",
+  "resolved_authority_version": "6.0",
+  "version_resolution": "EXPLICIT_USER_REQUEST_AND_CANONICAL_NOTION_PAGE",
+  "installed_version_before_setup": null,
+  "repository_mode": "NEW",
+  "resume": false,
+  "target_repository": "/home/sketch/Documents/PROJECTS/ROM Library",
+  "repository_identity": "09595a3f-1e8f-49e4-996c-b4064fa6c645",
+  "git": {
+    "present": false,
+    "root": null,
+    "branch": null,
+    "head": null,
+    "dirty_state": "not applicable; directory is not a Git repository"
+  },
+  "initial_tree": {
+    "files": 0,
+    "application_files": 0,
+    "authority_files": 0,
+    "observed_at": "2026-11-13T13:50:57Z"
+  },
+  "original_product_goal": {
+    "status": "UNKNOWN",
+    "source": "no charter or application code in the initially empty directory",
+    "action": "left unset"
+  },
+  "runtime_basis_before": "BUILD_REQUIRED",
+  "runtime_basis_after": "LOCAL_SOURCE_IMPLEMENTED_NOT_AN_UPSTREAM_RELEASE",
+  "toolchain": {
+    "os": "Ubuntu 24.04 x86_64",
+    "python": "3.12.3",
+    "python_sqlite": "3.45.1",
+    "fts5": "SUPPORTED",
+    "node": "v24.20.0",
+    "git": "2.43.0"
+  }
+}

@@ -1,0 +1,407 @@
+{
+  "schema_version": "authority.atlas-projection.v1",
+  "is_fixture": true,
+  "snapshot": {
+    "id": "synthetic-fixture-only",
+    "repository_id": "11111111-1111-4111-8111-111111111111",
+    "worktree_id": null,
+    "git_commit": null,
+    "source_digest": null,
+    "ledger_watermark": null,
+    "extractor_versions": {},
+    "freshness": "UNKNOWN",
+    "coverage": {
+      "eligible_files": null,
+      "inventoried_files": null,
+      "fresh_summaries": null,
+      "unresolved_edges": null
+    }
+  },
+  "nodes": [
+    {
+      "id": "repo:11111111-1111-4111-8111-111111111111/entity:00000000-0000-4000-8000-000000000001",
+      "alias": "G-1",
+      "layer": "journey",
+      "type": "goal",
+      "title": "Reliable importer",
+      "summary": "Original illustrative goal",
+      "classification": "100",
+      "status": "ACTIVE",
+      "source_refs": [
+        {
+          "ref": "examples/branch-and-code-map.md",
+          "hash": null,
+          "evidence_class": "DOCUMENTED",
+          "scope": "Synthetic fixture only; not observed code or execution"
+        }
+      ]
+    },
+    {
+      "id": "repo:11111111-1111-4111-8111-111111111111/entity:00000000-0000-4000-8000-000000000002",
+      "alias": "M-1",
+      "layer": "journey",
+      "type": "milestone",
+      "title": "Retry safety",
+      "summary": "Import without duplicate rows",
+      "classification": "100.010",
+      "status": "ACTIVE",
+      "source_refs": [
+        {
+          "ref": "examples/branch-and-code-map.md",
+          "hash": null,
+          "evidence_class": "DOCUMENTED",
+          "scope": "Synthetic fixture only; not observed code or execution"
+        }
+      ]
+    },
+    {
+      "id": "repo:11111111-1111-4111-8111-111111111111/entity:00000000-0000-4000-8000-000000000003",
+      "alias": "D-1",
+      "layer": "journey",
+      "type": "directive",
+      "title": "Direct-write attempt",
+      "summary": "Initial illustrative approach",
+      "classification": "100.010.010",
+      "status": "FAILED",
+      "source_refs": [
+        {
+          "ref": "examples/branch-and-code-map.md",
+          "hash": null,
+          "evidence_class": "DOCUMENTED",
+          "scope": "Synthetic fixture only; not observed code or execution"
+        }
+      ]
+    },
+    {
+      "id": "repo:11111111-1111-4111-8111-111111111111/entity:00000000-0000-4000-8000-000000000004",
+      "alias": "O-1",
+      "layer": "journey",
+      "type": "outcome",
+      "title": "Duplicate rows",
+      "summary": "Fixture failure motivates retry investigation",
+      "classification": null,
+      "status": "FAILED",
+      "source_refs": [
+        {
+          "ref": "examples/branch-and-code-map.md",
+          "hash": null,
+          "evidence_class": "DOCUMENTED",
+          "scope": "Synthetic fixture only; not observed code or execution"
+        }
+      ]
+    },
+    {
+      "id": "repo:11111111-1111-4111-8111-111111111111/entity:00000000-0000-4000-8000-000000000005",
+      "alias": "B-1",
+      "layer": "journey",
+      "type": "branch",
+      "title": "Investigate retries",
+      "summary": "Bounded detour from O-1",
+      "classification": "100.010.020",
+      "status": "MERGED",
+      "source_refs": [
+        {
+          "ref": "examples/branch-and-code-map.md",
+          "hash": null,
+          "evidence_class": "DOCUMENTED",
+          "scope": "Synthetic fixture only; not observed code or execution"
+        }
+      ]
+    },
+    {
+      "id": "repo:11111111-1111-4111-8111-111111111111/entity:00000000-0000-4000-8000-000000000006",
+      "alias": "D-2",
+      "layer": "journey",
+      "type": "directive",
+      "title": "Evaluate idempotency",
+      "summary": "Investigate alternative design",
+      "classification": "100.010.020.010",
+      "status": "COMPLETE",
+      "source_refs": [
+        {
+          "ref": "examples/branch-and-code-map.md",
+          "hash": null,
+          "evidence_class": "DOCUMENTED",
+          "scope": "Synthetic fixture only; not observed code or execution"
+        }
+      ]
+    },
+    {
+      "id": "repo:11111111-1111-4111-8111-111111111111/entity:00000000-0000-4000-8000-000000000007",
+      "alias": "O-2",
+      "layer": "journey",
+      "type": "outcome",
+      "title": "Candidate supported",
+      "summary": "Illustrative result, no actual tests claimed",
+      "classification": null,
+      "status": "COMPLETE",
+      "source_refs": [
+        {
+          "ref": "examples/branch-and-code-map.md",
+          "hash": null,
+          "evidence_class": "DOCUMENTED",
+          "scope": "Synthetic fixture only; not observed code or execution"
+        }
+      ]
+    },
+    {
+      "id": "repo:11111111-1111-4111-8111-111111111111/entity:00000000-0000-4000-8000-000000000008",
+      "alias": "D-3",
+      "layer": "journey",
+      "type": "directive",
+      "title": "Integrate retry safety",
+      "summary": "Current illustrative continuation",
+      "classification": "100.010.030",
+      "status": "ACTIVE",
+      "source_refs": [
+        {
+          "ref": "examples/branch-and-code-map.md",
+          "hash": null,
+          "evidence_class": "DOCUMENTED",
+          "scope": "Synthetic fixture only; not observed code or execution"
+        }
+      ]
+    },
+    {
+      "id": "repo:11111111-1111-4111-8111-111111111111/entity:00000000-0000-4000-8000-000000000009",
+      "alias": "F-1",
+      "layer": "code",
+      "type": "file",
+      "title": "importer.ts",
+      "summary": "Example importer entry point",
+      "classification": null,
+      "status": "EXAMPLE",
+      "source_refs": [
+        {
+          "ref": "examples/branch-and-code-map.md",
+          "hash": null,
+          "evidence_class": "DOCUMENTED",
+          "scope": "Synthetic fixture only; not observed code or execution"
+        }
+      ],
+      "path": "example/src/importer.ts"
+    },
+    {
+      "id": "repo:11111111-1111-4111-8111-111111111111/entity:00000000-0000-4000-8000-000000000010",
+      "alias": "F-2",
+      "layer": "code",
+      "type": "file",
+      "title": "keys.ts",
+      "summary": "Example idempotency-key component",
+      "classification": null,
+      "status": "EXAMPLE",
+      "source_refs": [
+        {
+          "ref": "examples/branch-and-code-map.md",
+          "hash": null,
+          "evidence_class": "DOCUMENTED",
+          "scope": "Synthetic fixture only; not observed code or execution"
+        }
+      ],
+      "path": "example/src/keys.ts"
+    },
+    {
+      "id": "repo:11111111-1111-4111-8111-111111111111/entity:00000000-0000-4000-8000-000000000011",
+      "alias": "T-1",
+      "layer": "code",
+      "type": "test",
+      "title": "retry.test.ts",
+      "summary": "Example test relationship, not a passing receipt",
+      "classification": null,
+      "status": "EXAMPLE",
+      "source_refs": [
+        {
+          "ref": "examples/branch-and-code-map.md",
+          "hash": null,
+          "evidence_class": "DOCUMENTED",
+          "scope": "Synthetic fixture only; not observed code or execution"
+        }
+      ],
+      "path": "example/src/retry.test.ts"
+    }
+  ],
+  "edges": [
+    {
+      "id": "10000000-0000-4000-8000-000000000001",
+      "from": "repo:11111111-1111-4111-8111-111111111111/entity:00000000-0000-4000-8000-000000000002",
+      "to": "repo:11111111-1111-4111-8111-111111111111/entity:00000000-0000-4000-8000-000000000001",
+      "relation": "advances",
+      "source_refs": [
+        {
+          "ref": "examples/branch-and-code-map.md",
+          "hash": null,
+          "evidence_class": "DOCUMENTED",
+          "scope": "Synthetic fixture only; not observed code or execution"
+        }
+      ]
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000002",
+      "from": "repo:11111111-1111-4111-8111-111111111111/entity:00000000-0000-4000-8000-000000000003",
+      "to": "repo:11111111-1111-4111-8111-111111111111/entity:00000000-0000-4000-8000-000000000002",
+      "relation": "advances",
+      "source_refs": [
+        {
+          "ref": "examples/branch-and-code-map.md",
+          "hash": null,
+          "evidence_class": "DOCUMENTED",
+          "scope": "Synthetic fixture only; not observed code or execution"
+        }
+      ]
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000003",
+      "from": "repo:11111111-1111-4111-8111-111111111111/entity:00000000-0000-4000-8000-000000000003",
+      "to": "repo:11111111-1111-4111-8111-111111111111/entity:00000000-0000-4000-8000-000000000004",
+      "relation": "produced",
+      "source_refs": [
+        {
+          "ref": "examples/branch-and-code-map.md",
+          "hash": null,
+          "evidence_class": "DOCUMENTED",
+          "scope": "Synthetic fixture only; not observed code or execution"
+        }
+      ]
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000004",
+      "from": "repo:11111111-1111-4111-8111-111111111111/entity:00000000-0000-4000-8000-000000000005",
+      "to": "repo:11111111-1111-4111-8111-111111111111/entity:00000000-0000-4000-8000-000000000004",
+      "relation": "branched_from",
+      "source_refs": [
+        {
+          "ref": "examples/branch-and-code-map.md",
+          "hash": null,
+          "evidence_class": "DOCUMENTED",
+          "scope": "Synthetic fixture only; not observed code or execution"
+        }
+      ]
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000005",
+      "from": "repo:11111111-1111-4111-8111-111111111111/entity:00000000-0000-4000-8000-000000000006",
+      "to": "repo:11111111-1111-4111-8111-111111111111/entity:00000000-0000-4000-8000-000000000005",
+      "relation": "depends_on",
+      "source_refs": [
+        {
+          "ref": "examples/branch-and-code-map.md",
+          "hash": null,
+          "evidence_class": "DOCUMENTED",
+          "scope": "Synthetic fixture only; not observed code or execution"
+        }
+      ]
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000006",
+      "from": "repo:11111111-1111-4111-8111-111111111111/entity:00000000-0000-4000-8000-000000000006",
+      "to": "repo:11111111-1111-4111-8111-111111111111/entity:00000000-0000-4000-8000-000000000007",
+      "relation": "produced",
+      "source_refs": [
+        {
+          "ref": "examples/branch-and-code-map.md",
+          "hash": null,
+          "evidence_class": "DOCUMENTED",
+          "scope": "Synthetic fixture only; not observed code or execution"
+        }
+      ]
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000007",
+      "from": "repo:11111111-1111-4111-8111-111111111111/entity:00000000-0000-4000-8000-000000000008",
+      "to": "repo:11111111-1111-4111-8111-111111111111/entity:00000000-0000-4000-8000-000000000007",
+      "relation": "depends_on",
+      "source_refs": [
+        {
+          "ref": "examples/branch-and-code-map.md",
+          "hash": null,
+          "evidence_class": "DOCUMENTED",
+          "scope": "Synthetic fixture only; not observed code or execution"
+        }
+      ]
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000008",
+      "from": "repo:11111111-1111-4111-8111-111111111111/entity:00000000-0000-4000-8000-000000000005",
+      "to": "repo:11111111-1111-4111-8111-111111111111/entity:00000000-0000-4000-8000-000000000008",
+      "relation": "rejoins_at",
+      "source_refs": [
+        {
+          "ref": "examples/branch-and-code-map.md",
+          "hash": null,
+          "evidence_class": "DOCUMENTED",
+          "scope": "Synthetic fixture only; not observed code or execution"
+        }
+      ]
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000009",
+      "from": "repo:11111111-1111-4111-8111-111111111111/entity:00000000-0000-4000-8000-000000000008",
+      "to": "repo:11111111-1111-4111-8111-111111111111/entity:00000000-0000-4000-8000-000000000002",
+      "relation": "advances",
+      "source_refs": [
+        {
+          "ref": "examples/branch-and-code-map.md",
+          "hash": null,
+          "evidence_class": "DOCUMENTED",
+          "scope": "Synthetic fixture only; not observed code or execution"
+        }
+      ]
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000010",
+      "from": "repo:11111111-1111-4111-8111-111111111111/entity:00000000-0000-4000-8000-000000000006",
+      "to": "repo:11111111-1111-4111-8111-111111111111/entity:00000000-0000-4000-8000-000000000010",
+      "relation": "targets",
+      "source_refs": [
+        {
+          "ref": "examples/branch-and-code-map.md",
+          "hash": null,
+          "evidence_class": "DOCUMENTED",
+          "scope": "Synthetic fixture only; not observed code or execution"
+        }
+      ]
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000011",
+      "from": "repo:11111111-1111-4111-8111-111111111111/entity:00000000-0000-4000-8000-000000000008",
+      "to": "repo:11111111-1111-4111-8111-111111111111/entity:00000000-0000-4000-8000-000000000009",
+      "relation": "targets",
+      "source_refs": [
+        {
+          "ref": "examples/branch-and-code-map.md",
+          "hash": null,
+          "evidence_class": "DOCUMENTED",
+          "scope": "Synthetic fixture only; not observed code or execution"
+        }
+      ]
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000012",
+      "from": "repo:11111111-1111-4111-8111-111111111111/entity:00000000-0000-4000-8000-000000000009",
+      "to": "repo:11111111-1111-4111-8111-111111111111/entity:00000000-0000-4000-8000-000000000010",
+      "relation": "imports",
+      "source_refs": [
+        {
+          "ref": "examples/branch-and-code-map.md",
+          "hash": null,
+          "evidence_class": "DOCUMENTED",
+          "scope": "Synthetic fixture only; not observed code or execution"
+        }
+      ]
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000013",
+      "from": "repo:11111111-1111-4111-8111-111111111111/entity:00000000-0000-4000-8000-000000000011",
+      "to": "repo:11111111-1111-4111-8111-111111111111/entity:00000000-0000-4000-8000-000000000009",
+      "relation": "tests",
+      "source_refs": [
+        {
+          "ref": "examples/branch-and-code-map.md",
+          "hash": null,
+          "evidence_class": "DOCUMENTED",
+          "scope": "Synthetic fixture only; not observed code or execution"
+        }
+      ]
+    }
+  ]
+}

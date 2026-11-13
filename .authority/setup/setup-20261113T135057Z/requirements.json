@@ -1,0 +1,207 @@
+{
+  "schema_version": "authority.setup-requirements.v1",
+  "profile": "Authority 6.0 modular Atlas",
+  "requested_authority_version": "6.0",
+  "features": [
+    {
+      "id": "codex-native-router",
+      "required": true,
+      "source": "adapter + official Codex docs",
+      "status": "INSTALLED in repository; fresh Codex Desktop loading NOT_RUN."
+    },
+    {
+      "id": "conditional-workflows-and-skills",
+      "required": true,
+      "source": "Authority 6.0 repository files",
+      "status": "INSTALLED in repository; native discovery NOT_RUN."
+    },
+    {
+      "id": "ten-reusable-role-profiles",
+      "required": true,
+      "source": "Authority 6.0 design",
+      "status": "INSTALLED; 10 TOML profiles parsed; fresh-session discovery NOT_RUN."
+    },
+    {
+      "id": "canonical-append-only-project-records",
+      "required": true,
+      "source": "record contracts",
+      "status": "INITIALIZED; duplicate append and partial-ledger fail-closed fixture checks PASSED."
+    },
+    {
+      "id": "journey-search-and-recovery",
+      "required": true,
+      "source": "roadmap P2 and acceptance",
+      "status": "IMPLEMENTED; exact Journey ID, bounded context, fallback, pagination, and fixture recovery checks PASSED; formal A01-A23 scenarios NOT_RUN."
+    },
+    {
+      "id": "full-code-inventory-and-bridges",
+      "required": true,
+      "source": "roadmap P3 and Atlas",
+      "status": "IMPLEMENTED; 115 eligible files, five Journey records, 39 evidence links, and FTS5 observed; whole-repository semantic review remains pending."
+    },
+    {
+      "id": "incremental-freshness-and-atomic-snapshot",
+      "required": true,
+      "source": "roadmap P3 and Atlas",
+      "status": "IMPLEMENTED; unchanged refresh, rename identity continuity, and stable old-path alias fixture checks PASSED."
+    },
+    {
+      "id": "visual-journey-code-both-viewer",
+      "required": true,
+      "source": "roadmap P4 and acceptance",
+      "status": "IMPLEMENTED and browser checked; page loaded, Journey and Code lookup/details worked, Both search pagination worked. Fixed SVG clearing bug found during browser check."
+    },
+    {
+      "id": "conductor-and-proportionate-consequence-gate",
+      "required": true,
+      "source": "operating model and A21-A23",
+      "status": "ROLE and workflow guidance installed; setup disposition recorded PARTIAL; formal consequence-gate scenarios NOT_RUN."
+    },
+    {
+      "id": "model-selection-and-cost-evidence",
+      "required": true,
+      "source": "model routing reference",
+      "status": "HOST MODEL NOT OBSERVABLE; no role override configured; no benchmarks claimed."
+    },
+    {
+      "id": "native-turn-hooks",
+      "required": false,
+      "source": "setup guide / Codex hooks",
+      "status": "NOT CONFIGURED; explicit task/turn-boundary refresh fallback"
+    },
+    {
+      "id": "persistent-parallel-workers",
+      "required": false,
+      "source": "operating model and adapter",
+      "status": "NOT CONFIGURED; reusable roles may run sequentially"
+    },
+    {
+      "id": "vector-search",
+      "required": false,
+      "source": "Authority 6.0 design",
+      "status": "NOT IMPLEMENTED; lexical search is required and available"
+    }
+  ],
+  "scenarios": [
+    {
+      "id": "A01",
+      "status": "NOT_RUN",
+      "note": "Formal scenario not run. See coverage.json for separately executed component checks; do not infer full-scenario acceptance."
+    },
+    {
+      "id": "A02",
+      "status": "NOT_RUN",
+      "note": "Formal scenario not run. See coverage.json for separately executed component checks; do not infer full-scenario acceptance."
+    },
+    {
+      "id": "A03",
+      "status": "NOT_RUN",
+      "note": "Formal scenario not run. See coverage.json for separately executed component checks; do not infer full-scenario acceptance."
+    },
+    {
+      "id": "A04",
+      "status": "NOT_RUN",
+      "note": "Formal scenario not run. See coverage.json for separately executed component checks; do not infer full-scenario acceptance."
+    },
+    {
+      "id": "A05",
+      "status": "NOT_RUN",
+      "note": "Formal scenario not run. See coverage.json for separately executed component checks; do not infer full-scenario acceptance."
+    },
+    {
+      "id": "A06",
+      "status": "NOT_RUN",
+      "note": "Formal scenario not run. See coverage.json for separately executed component checks; do not infer full-scenario acceptance."
+    },
+    {
+      "id": "A07",
+      "status": "NOT_RUN",
+      "note": "Formal scenario not run. See coverage.json for separately executed component checks; do not infer full-scenario acceptance."
+    },
+    {
+      "id": "A08",
+      "status": "NOT_RUN",
+      "note": "Formal scenario not run. See coverage.json for separately executed component checks; do not infer full-scenario acceptance."
+    },
+    {
+      "id": "A09",
+      "status": "NOT_RUN",
+      "note": "Formal scenario not run. See coverage.json for separately executed component checks; do not infer full-scenario acceptance."
+    },
+    {
+      "id": "A10",
+      "status": "NOT_RUN",
+      "note": "Formal scenario not run. See coverage.json for separately executed component checks; do not infer full-scenario acceptance."
+    },
+    {
+      "id": "A11",
+      "status": "NOT_RUN",
+      "note": "Formal scenario not run. See coverage.json for separately executed component checks; do not infer full-scenario acceptance."
+    },
+    {
+      "id": "A12",
+      "status": "NOT_RUN",
+      "note": "Formal scenario not run. See coverage.json for separately executed component checks; do not infer full-scenario acceptance."
+    },
+    {
+      "id": "A13",
+      "status": "NOT_RUN",
+      "note": "Formal scenario not run. See coverage.json for separately executed component checks; do not infer full-scenario acceptance."
+    },
+    {
+      "id": "A14",
+      "status": "NOT_RUN",
+      "note": "Formal scenario not run. See coverage.json for separately executed component checks; do not infer full-scenario acceptance."
+    },
+    {
+      "id": "A15",
+      "status": "NOT_RUN",
+      "note": "Formal scenario not run. See coverage.json for separately executed component checks; do not infer full-scenario acceptance."
+    },
+    {
+      "id": "A16",
+      "status": "NOT_RUN",
+      "note": "Formal scenario not run. See coverage.json for separately executed component checks; do not infer full-scenario acceptance."
+    },
+    {
+      "id": "A17",
+      "status": "NOT_RUN",
+      "note": "Formal scenario not run. See coverage.json for separately executed component checks; do not infer full-scenario acceptance."
+    },
+    {
+      "id": "A18",
+      "status": "NOT_RUN",
+      "note": "Formal scenario not run. See coverage.json for separately executed component checks; do not infer full-scenario acceptance."
+    },
+    {
+      "id": "A19",
+      "status": "NOT_RUN",
+      "note": "Formal scenario not run. See coverage.json for separately executed component checks; do not infer full-scenario acceptance."
+    },
+    {
+      "id": "A20",
+      "status": "NOT_RUN",
+      "note": "Formal scenario not run. See coverage.json for separately executed component checks; do not infer full-scenario acceptance."
+    },
+    {
+      "id": "A21",
+      "status": "NOT_RUN",
+      "note": "Formal scenario not run. See coverage.json for separately executed component checks; do not infer full-scenario acceptance."
+    },
+    {
+      "id": "A22",
+      "status": "NOT_RUN",
+      "note": "Formal scenario not run. See coverage.json for separately executed component checks; do not infer full-scenario acceptance."
+    },
+    {
+      "id": "A23",
+      "status": "NOT_RUN",
+      "note": "Formal scenario not run. See coverage.json for separately executed component checks; do not infer full-scenario acceptance."
+    }
+  ],
+  "terminal_fresh_desktop_session": {
+    "required": true,
+    "status": "NOT_RUN",
+    "note": "Requires a fresh Codex Desktop session at this repository using normal workspace discovery; this session cannot establish that outcome."
+  }
+}

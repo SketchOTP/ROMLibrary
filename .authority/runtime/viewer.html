@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Authority 6.0 Atlas</title>
+  <style>
+    :root { color-scheme: light dark; --bg:#10161d; --panel:#18222c; --line:#344554; --text:#edf4f8; --muted:#a6b7c2; --journey:#d2a7ff; --code:#70d4c2; --accent:#77adff; }
+    * { box-sizing:border-box }
+    body { margin:0; background:var(--bg); color:var(--text); font:15px/1.45 system-ui,sans-serif }
+    header { padding:18px 24px; border-bottom:1px solid var(--line); display:flex; align-items:center; justify-content:space-between; gap:20px }
+    h1 { font-size:20px; margin:0 } .sub { color:var(--muted); font-size:13px }
+    main { display:grid; grid-template-columns:minmax(280px,360px) 1fr; gap:16px; padding:16px; min-height:calc(100vh - 72px) }
+    section, aside { background:var(--panel); border:1px solid var(--line); border-radius:12px; min-width:0 }
+    aside { padding:16px; display:flex; flex-direction:column; gap:12px }
+    .toolbar { display:flex; gap:6px; flex-wrap:wrap }
+    button, input { font:inherit; color:var(--text); background:#101820; border:1px solid var(--line); border-radius:8px; padding:9px 11px }
+    button { cursor:pointer } button:hover, button[aria-pressed="true"] { border-color:var(--accent); background:#22354a }
+    input { width:100% } .searchrow { display:flex; gap:7px } .searchrow button { flex:none }
+    #results { overflow:auto; max-height:36vh; display:grid; gap:7px }
+    .result { text-align:left; width:100%; padding:9px; border-radius:8px; background:#121b23 }
+    .result strong { display:block; overflow-wrap:anywhere } .result small { display:block; color:var(--muted); margin-top:3px }
+    #details { border-top:1px solid var(--line); padding-top:10px; min-height:130px; overflow:auto }
+    #details h2 { font-size:16px; margin:0 0 6px } #details p { margin:5px 0; color:var(--muted); overflow-wrap:anywhere }
+    a { color:var(--accent) } label { color:var(--muted); font-size:13px }
+    #canvas { padding:10px; overflow:auto; display:flex; flex-direction:column }
+    #graph { width:100%; min-width:700px; height:calc(100vh - 180px); min-height:480px; background:radial-gradient(ellipse at center,#202c37 0%,#141d26 75%); border-radius:9px }
+    .lane { fill:var(--muted); font-size:15px; font-weight:650 }
+    .edge { stroke:#657886; stroke-width:1.4; opacity:.65 }
+    .node rect { stroke-width:1.4; rx:9; fill:#18232c }
+    .node.journey rect { stroke:var(--journey) } .node.code rect { stroke:var(--code) }
+    .node.active rect { stroke:var(--accent); stroke-width:3; fill:#203652 }
+    .node.selected rect { stroke:#fff; stroke-width:3 }
+    .node text { fill:var(--text); font-size:12px; pointer-events:none }
+    .node { cursor:pointer } .node:focus rect { stroke:#fff; stroke-width:3 }
+    .legend { display:flex; gap:18px; padding:8px 4px; color:var(--muted); font-size:13px }
+    .dot { display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:5px } .j { background:var(--journey) } .c { background:var(--code) }
+    #status { text-align:right; max-width:55%; overflow-wrap:anywhere }
+    .empty { padding:12px; color:var(--muted); border:1px dashed var(--line); border-radius:8px }
+    @media (max-width:850px) { main { grid-template-columns:1fr } #results { max-height:25vh } #graph { height:55vh } #status { max-width:45% } }
+  </style>
+</head>
+<body>
+  <header>
+    <div><h1>Authority 6.0 — Project Atlas</h1><div class="sub">Journey history, code inventory, and evidence-backed bridges</div></div>
+    <div id="status" class="sub" role="status">Loading repository snapshot…</div>
+  </header>
+  <main>
+    <aside aria-label="Atlas search and details">
+      <div class="toolbar" role="group" aria-label="Atlas layer">
+        <button data-layer="journey" aria-pressed="false">Journey</button>
+        <button data-layer="code" aria-pressed="false">Code</button>
+        <button data-layer="both" aria-pressed="true">Both</button>
+        <button id="refresh" title="Re-hash eligible files and publish a fresh snapshot">Refresh</button>
+      </div>
+      <form id="search-form">
+        <label for="query">Search exact ID, path, symbol, alias, or words</label>
+        <div class="searchrow"><input id="query" autocomplete="off" placeholder="e.g. D-A6-SETUP-20261113"><button type="submit">Search</button></div>
+      </form>
+      <label><input id="hide-closed" type="checkbox" checked style="width:auto;vertical-align:middle"> Hide closed branches</label>
+      <div id="results" aria-label="Search results"><div class="empty">Choose a layer or search the current snapshot.</div></div>
+      <div id="details" aria-live="polite"><h2>Evidence details</h2><p>Select a map node or search result.</p></div>
+    </aside>
+    <section id="canvas" aria-label="Visual map and accessible list">
+      <svg id="graph" viewBox="0 0 1000 680" role="img" aria-label="Interactive Authority Atlas map">
+        <text class="lane" x="125" y="34">JOURNEY</text><text class="lane" x="725" y="34">CODE</text>
+      </svg>
+      <div class="legend"><span><i class="dot j"></i>Journey records</span><span><i class="dot c"></i>Repository files</span><span>Blue outline marks the current route</span></div>
+      <details><summary>Accessible node list</summary><ul id="node-list"></ul></details>
+    </section>
+  </main>
+  <script>
+    const svg = document.getElementById('graph');
+    const resultBox = document.getElementById('results');
+    const details = document.getElementById('details');
+    const statusBox = document.getElementById('status');
+    let layer = 'both';
+    let graph = {nodes:[],edges:[],active_route:[]};
+    let selected = null;
+    let searchCursor = null;
+    let currentQuery = '';
+    const short = (value, n=29) => value.length > n ? value.slice(0,n-1) + '…' : value;
+    const esc = value => String(value ?? '');
+
+    async function api(path) {
+      const response = await fetch(path, {cache:'no-store'});
+      const value = await response.json();
+      if (!response.ok) throw new Error(value.error || response.statusText);
+      return value;
+    }
+    function showDetails(node) {
+      selected = node;
+      if (!graph.nodes.some(n=>n.entity_id===node.entity_id)) graph.nodes.push(node);
+      details.replaceChildren();
+      const title = document.createElement('h2'); title.textContent = node.title || node.entity_id; details.append(title);
+      const fields = [
+        ['Type / layer', `${node.kind} / ${node.layer}`], ['Status', node.status], ['Path / source', node.path],
+        ['Stable identity', node.entity_id], ['Browse address', node.classification], ['SHA-256', node.sha256],
+        ['Snapshot', node.snapshot_id], ['Evidence', JSON.stringify(node.evidence || {})],
+      ];
+      for (const [label,value] of fields) { const p=document.createElement('p'); p.textContent=`${label}: ${esc(value)}`; details.append(p); }
+      const summary=document.createElement('p'); summary.textContent=node.summary || ''; details.append(summary);
+      draw();
+    }
+    function clearGraph() {
+      while (svg.lastElementChild && svg.lastElementChild.tagName.toLowerCase() !== 'text') svg.removeChild(svg.lastElementChild);
+    }
+    function draw() {
+      clearGraph();
+      const visible = graph.nodes.filter(n => !(document.getElementById('hide-closed').checked && n.layer==='journey' && ['ABANDONED','CANCELLED','SUPERSEDED','MERGED'].includes(String(n.status).toUpperCase())));
+      const priority = n => (selected?.entity_id===n.entity_id ? 0 : graph.active_route?.includes(n.entity_id) ? 1 : 2);
+      const ordered = [...visible].sort((a,b)=>priority(a)-priority(b));
+      const journey = ordered.filter(n=>n.layer==='journey').slice(0,18);
+      const code = ordered.filter(n=>n.layer==='code').slice(0,18);
+      const positions = new Map();
+      journey.forEach((n,i)=>positions.set(n.entity_id,{x:80,y:70+i*32,w:370,h:26}));
+      code.forEach((n,i)=>positions.set(n.entity_id,{x:550,y:70+i*32,w:370,h:26}));
+      for (const e of graph.edges || []) {
+        const a=positions.get(e.source_id), b=positions.get(e.target_id); if(!a||!b) continue;
+        const line=document.createElementNS('http://www.w3.org/2000/svg','line');
+        line.setAttribute('x1',a.x+a.w); line.setAttribute('y1',a.y+13); line.setAttribute('x2',b.x); line.setAttribute('y2',b.y+13); line.setAttribute('class','edge');
+        line.setAttribute('aria-label',`${e.relation}: ${e.evidence_path}`); svg.append(line);
+      }
+      for (const n of visible) {
+        const p=positions.get(n.entity_id); if(!p) continue;
+        const group=document.createElementNS('http://www.w3.org/2000/svg','g');
+        group.setAttribute('class',`node ${n.layer}${graph.active_route?.includes(n.entity_id)?' active':''}${selected?.entity_id===n.entity_id?' selected':''}`);
+        group.setAttribute('tabindex','0'); group.setAttribute('role','button'); group.setAttribute('aria-label',`${n.title}, ${n.layer}, ${n.path}`);
+        const rect=document.createElementNS('http://www.w3.org/2000/svg','rect'); rect.setAttribute('x',p.x);rect.setAttribute('y',p.y);rect.setAttribute('width',p.w);rect.setAttribute('height',p.h); group.append(rect);
+        const label=document.createElementNS('http://www.w3.org/2000/svg','text');label.setAttribute('x',p.x+10);label.setAttribute('y',p.y+17);label.textContent=short(n.title || n.path);group.append(label);
+        group.addEventListener('click',()=>showDetails(n)); group.addEventListener('keydown',ev=>{if(ev.key==='Enter'||ev.key===' '){ev.preventDefault();showDetails(n);}}); svg.append(group);
+      }
+      const list=document.getElementById('node-list'); list.replaceChildren();
+      for(const n of visible){const li=document.createElement('li');const b=document.createElement('button');b.textContent=`${n.layer}: ${n.title} — ${n.path}`;b.addEventListener('click',()=>showDetails(n));li.append(b);list.append(li);}
+      if (!visible.length) { const t=document.createElementNS('http://www.w3.org/2000/svg','text');t.setAttribute('x','300');t.setAttribute('y','120');t.setAttribute('class','lane');t.textContent='No nodes in this layer yet';svg.append(t); }
+    }
+    function showResults(items, fallback, hint, hasMore, append) {
+      if(!append) resultBox.replaceChildren();
+      const oldMore=document.getElementById('more-results'); if(oldMore) oldMore.remove();
+      if(!items.length){
+        const p=document.createElement('div');p.className='empty';
+        p.textContent=append?'No additional results.':(hint || 'No indexed result. Search canonical ledgers and live source; a no-hit does not prove absence.');
+        resultBox.append(p); return;
+      }
+      for(const n of items){
+        if(!graph.nodes.some(x=>x.entity_id===n.entity_id)) graph.nodes.push(n);
+        const b=document.createElement('button');b.className='result';
+        const strong=document.createElement('strong');strong.textContent=n.title||n.entity_id;
+        const small=document.createElement('small');small.textContent=`${n.layer} · ${n.path} · ${n.status}`;
+        const summary=document.createElement('small');summary.textContent=n.summary||'';
+        b.append(strong,small,summary);b.addEventListener('click',()=>showDetails(n));resultBox.append(b);
+      }
+      draw();
+      if(hasMore){
+        const more=document.createElement('button');more.id='more-results';more.textContent='More results';
+        more.setAttribute('aria-label','Load the next page of search results');
+        more.addEventListener('click',()=>search(false));resultBox.append(more);
+      }
+    }
+    async function loadGraph() {
+      try {
+        graph=await api(`/api/graph?layer=${encodeURIComponent(layer)}&limit=120&hide_closed=${document.getElementById('hide-closed').checked}`);
+        draw();
+        statusBox.textContent=`${graph.snapshot_id || 'No snapshot'} · ${graph.counts?.eligible_files ?? 0} files · ${graph.counts?.journey_records ?? 0} Journey records · ${graph.counts?.edges ?? 0} links`;
+      } catch(e) { statusBox.textContent=`Atlas unavailable: ${e.message}`; }
+    }
+    async function search(reset=true) {
+      if(reset){currentQuery=document.getElementById('query').value.trim();searchCursor=null;resultBox.replaceChildren();}
+      const cursor=searchCursor;
+      const page=cursor===null?'':`&cursor=${encodeURIComponent(cursor)}`;
+      try {
+        const value=await api(`/api/search?layer=${encodeURIComponent(layer)}&limit=20&query=${encodeURIComponent(currentQuery)}${page}`);
+        searchCursor=value.next_cursor??null;
+        showResults(value.results||[],value.fallback,value.hint,Boolean(value.has_more),!reset);
+      }
+      catch(e){searchCursor=null;showResults([],true,`Search error: ${e.message}`,false,!reset);}
+    }
+    document.querySelectorAll('[data-layer]').forEach(button=>button.addEventListener('click',()=>{
+      layer=button.dataset.layer;document.querySelectorAll('[data-layer]').forEach(b=>b.setAttribute('aria-pressed',String(b===button)));loadGraph();search();
+    }));
+    document.getElementById('search-form').addEventListener('submit',ev=>{ev.preventDefault();search();});
+    document.getElementById('refresh').addEventListener('click',()=>{loadGraph();search();});
+    document.getElementById('hide-closed').addEventListener('change',loadGraph);
+    loadGraph();
+  </script>
+</body>
+</html>

@@ -1,0 +1,139 @@
+{
+  "schema_version": "authority.source-lock.v1",
+  "setup_protocol": "1.2",
+  "adapter_contract": "1.0",
+  "requested_authority_version": "6.0",
+  "resolved_authority_version": "6.0",
+  "resolution_basis": "Exact user request resolved to the Authority 6.0 canonical design page and versioned setup guide.",
+  "pinned_at": "2026-11-13T14:10:00Z",
+  "source_pages": [
+    {
+      "name": "design",
+      "title": "🧭 Authority 6.0 — Modular Agent Guidelines & Layered Project Atlas",
+      "url": "https://app.notion.com/p/414833cb27ff81c983d8e603d42db710?pvs=204",
+      "last_edited_at": "2026-11-12T00:22:46.828Z",
+      "fetched_at": null,
+      "verification": "unverified",
+      "canonical_content_sha256": "5acf3b0ecc9eaf25d88d2e85603a1f4ddff25f946edf678c753dc5a11f7fe732"
+    },
+    {
+      "name": "setup",
+      "title": "🛠️ Authority — Versioned Setup, Upgrade & Existing-Repository Adoption",
+      "url": "https://app.notion.com/p/414833cb27ff812b897bfe091bd46df6?pvs=204",
+      "last_edited_at": "2026-11-10T15:21:22.311Z",
+      "fetched_at": null,
+      "verification": "unverified",
+      "canonical_content_sha256": "b2a7b1caa99260cc51975195ad17880ed7663c071a1a071fd5d995ba65d78db4"
+    },
+    {
+      "name": "adapter",
+      "title": "Authority 6.0 — Coding Tool Detection and Native Adapters",
+      "url": "https://app.notion.com/p/414833cb27ff812f8afedd76a68de9c6?pvs=204",
+      "last_edited_at": "2026-11-10T15:16:37.634Z",
+      "fetched_at": null,
+      "verification": "unverified",
+      "canonical_content_sha256": "0fc0003349b4b429bbeefac4ca57df6f5a8086f7639242e9a3da53ac697ba481"
+    },
+    {
+      "name": "files",
+      "title": "Authority — Repository Files: Router, Workflows & Role Modules",
+      "url": "https://app.notion.com/p/414833cb27ff81ad9285c3d4bbb5e620?pvs=204",
+      "last_edited_at": "2026-11-12T00:22:49.317Z",
+      "fetched_at": null,
+      "verification": "unverified",
+      "canonical_content_sha256": "c2a34286b843f1557db193e5f8383b5007c4bc519a31af02af8cf0121d977a1a"
+    },
+    {
+      "name": "forms",
+      "title": "Authority — Record Forms, Graph Schemas & Synthetic Example",
+      "url": "https://app.notion.com/p/414833cb27ff8196960fe04fcd712489?pvs=204",
+      "last_edited_at": "2026-11-10T11:56:52.213Z",
+      "fetched_at": null,
+      "verification": "unverified",
+      "canonical_content_sha256": "6bc37a9220a1e3999930de48e3a92a9d05bdd44a94503676717441ed1fb6d5e4"
+    },
+    {
+      "name": "contracts",
+      "title": "Authority — Record contracts and state semantics",
+      "url": "https://app.notion.com/p/414833cb27ff81cc9e54e711ae9a0534?pvs=204",
+      "last_edited_at": "2026-11-12T00:22:48.248Z",
+      "fetched_at": null,
+      "verification": "unverified",
+      "canonical_content_sha256": "411e45be6a49f1ca165cc1e89fc35ece0704745fa480fcb05a3f5a61ef73a4f2"
+    },
+    {
+      "name": "atlas",
+      "title": "Authority — Layered Atlas: Development Journey and Repository Map",
+      "url": "https://app.notion.com/p/414833cb27ff81a29030d4e8cfa0fc0a?pvs=204",
+      "last_edited_at": "2026-11-10T11:58:31.914Z",
+      "fetched_at": null,
+      "verification": "unverified",
+      "canonical_content_sha256": "c1471c196ae7581717cea079099d8253c477a0483a51f7229e87e35f9b1d0b43"
+    },
+    {
+      "name": "operating",
+      "title": "Authority — Operating model and role authority",
+      "url": "https://app.notion.com/p/414833cb27ff8170aad3e2f8d5dd3b6b?pvs=204",
+      "last_edited_at": "2026-11-12T00:22:04.756Z",
+      "fetched_at": null,
+      "verification": "unverified",
+      "canonical_content_sha256": "5b0f816eb5b0756bc4fc057f670a89960726cc01b6087cffc76df732745b2df7"
+    },
+    {
+      "name": "roadmap",
+      "title": "Authority — Implementation roadmap and acceptance gates",
+      "url": "https://app.notion.com/p/414833cb27ff819c9b62e015cb07f42e?pvs=204",
+      "last_edited_at": "2026-11-12T00:22:03.619Z",
+      "fetched_at": null,
+      "verification": "unverified",
+      "canonical_content_sha256": "d031dbb161bd6d46e6ef316a5d20dc717bcddc976720e2fbfa753866c3268ef8"
+    },
+    {
+      "name": "acceptance",
+      "title": "Authority — Setup Acceptance, Recovery and Completion",
+      "url": "https://app.notion.com/p/414833cb27ff817ca58adb3c810634da?pvs=204",
+      "last_edited_at": "2026-11-10T15:19:54.762Z",
+      "fetched_at": null,
+      "verification": "unverified",
+      "canonical_content_sha256": "bb16f43489ee529c59e3095816b4ba89eb329bf03cb3b0c5475ccfd766d66f70"
+    },
+    {
+      "name": "adoption",
+      "title": "Authority — Existing Repository Adoption, Upgrade and Backfill",
+      "url": "https://app.notion.com/p/414833cb27ff814ab57afe46962fdd33?pvs=204",
+      "last_edited_at": "2026-11-10T15:02:42.539Z",
+      "fetched_at": null,
+      "verification": "unverified",
+      "canonical_content_sha256": "d1b74e7459fc7d4433ac713ecb0aaffedef65f0114d698d13c113b1fcedd1d8b"
+    },
+    {
+      "name": "models",
+      "title": "Authority — 04 — Model Routing and Evaluation",
+      "url": "https://app.notion.com/p/414833cb27ff8140bab8e8a006cff345?pvs=204",
+      "last_edited_at": "2026-11-10T11:56:44.117Z",
+      "fetched_at": null,
+      "verification": "unverified",
+      "canonical_content_sha256": "f218ebc61dcc27eb17e89b3a4e369c3ca0886ea4fdce084c19d79b07f1fd47ee"
+    }
+  ],
+  "official_native_docs_checked": "2026-11-13",
+  "official_docs": [
+    {
+      "topic": "Codex instruction loading",
+      "url": "https://learn.chatgpt.com/docs/agent-configuration/agents-md"
+    },
+    {
+      "topic": "Codex skills",
+      "url": "https://learn.chatgpt.com/docs/build-skills"
+    },
+    {
+      "topic": "Codex custom agents",
+      "url": "https://learn.chatgpt.com/docs/agent-configuration/subagents"
+    }
+  ],
+  "notes": [
+    "The Notion verification metadata for the Authority 6.0 design page is unverified. Its content was fetched and used as the requested specification; this does not verify a deployed upstream runtime.",
+    "Source digests cover canonical page content without the fetch transport wrapper.",
+    "The Python/SQLite runtime is a repo-local implementation, not an official Authority release."
+  ]
+}

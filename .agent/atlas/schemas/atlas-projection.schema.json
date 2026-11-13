@@ -1,0 +1,348 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:authority:atlas-projection:v1",
+  "title": "Proposed Authority Atlas projection; semantic validation also required",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "is_fixture",
+    "snapshot",
+    "nodes",
+    "edges"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "authority.atlas-projection.v1"
+    },
+    "is_fixture": {
+      "type": "boolean"
+    },
+    "snapshot": {
+      "type": "object",
+      "required": [
+        "id",
+        "repository_id",
+        "worktree_id",
+        "git_commit",
+        "source_digest",
+        "ledger_watermark",
+        "extractor_versions",
+        "freshness",
+        "coverage"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "repository_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "worktree_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "git_commit": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "source_digest": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "ledger_watermark": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "extractor_versions": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "freshness": {
+          "enum": [
+            "CURRENT",
+            "PARTIAL",
+            "STALE",
+            "UNKNOWN"
+          ]
+        },
+        "coverage": {
+          "type": "object",
+          "required": [
+            "eligible_files",
+            "inventoried_files",
+            "fresh_summaries",
+            "unresolved_edges"
+          ],
+          "properties": {
+            "eligible_files": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 0
+            },
+            "inventoried_files": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 0
+            },
+            "fresh_summaries": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 0
+            },
+            "unresolved_edges": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 0
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "nodes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "alias",
+          "layer",
+          "type",
+          "title",
+          "summary",
+          "classification",
+          "status",
+          "source_refs"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^repo:[0-9a-fA-F-]{36}/entity:[0-9a-fA-F-]{36}$"
+          },
+          "alias": {
+            "type": "string"
+          },
+          "layer": {
+            "enum": [
+              "journey",
+              "code"
+            ]
+          },
+          "type": {
+            "enum": [
+              "goal",
+              "milestone",
+              "directive",
+              "attempt",
+              "outcome",
+              "decision",
+              "branch",
+              "lesson",
+              "evidence",
+              "acceptance",
+              "repository",
+              "directory",
+              "file",
+              "symbol",
+              "service",
+              "configuration",
+              "schema",
+              "test",
+              "external_interface"
+            ]
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1
+          },
+          "summary": {
+            "type": "string"
+          },
+          "classification": {
+            "anyOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "string",
+                "pattern": "^\\d+(\\.\\d+)*$"
+              }
+            ]
+          },
+          "path": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "status": {
+            "type": "string"
+          },
+          "source_refs": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "ref",
+                "hash",
+                "evidence_class"
+              ],
+              "properties": {
+                "ref": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "hash": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "evidence_class": {
+                  "enum": [
+                    "INDEXER_DERIVED",
+                    "SYNTAX_DERIVED",
+                    "RUNTIME_OBSERVED",
+                    "DOCUMENTED",
+                    "INFERRED",
+                    "UNRESOLVED",
+                    "STALE"
+                  ]
+                },
+                "scope": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              },
+              "additionalProperties": false
+            },
+            "minItems": 1
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "edges": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "from",
+          "to",
+          "relation",
+          "source_refs"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "from": {
+            "type": "string",
+            "pattern": "^repo:[0-9a-fA-F-]{36}/entity:[0-9a-fA-F-]{36}$"
+          },
+          "to": {
+            "type": "string",
+            "pattern": "^repo:[0-9a-fA-F-]{36}/entity:[0-9a-fA-F-]{36}$"
+          },
+          "relation": {
+            "enum": [
+              "advances",
+              "depends_on",
+              "branched_from",
+              "motivated_by",
+              "supersedes",
+              "produced",
+              "supports",
+              "contradicts",
+              "rejoins_at",
+              "contains",
+              "imports",
+              "references",
+              "implements",
+              "calls",
+              "configures",
+              "reads",
+              "writes",
+              "tests",
+              "generated_from",
+              "targets",
+              "changed",
+              "explains",
+              "verifies",
+              "applies_to",
+              "forked_from"
+            ]
+          },
+          "source_refs": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "ref",
+                "hash",
+                "evidence_class"
+              ],
+              "properties": {
+                "ref": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "hash": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "evidence_class": {
+                  "enum": [
+                    "INDEXER_DERIVED",
+                    "SYNTAX_DERIVED",
+                    "RUNTIME_OBSERVED",
+                    "DOCUMENTED",
+                    "INFERRED",
+                    "UNRESOLVED",
+                    "STALE"
+                  ]
+                },
+                "scope": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              },
+              "additionalProperties": false
+            },
+            "minItems": 1
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

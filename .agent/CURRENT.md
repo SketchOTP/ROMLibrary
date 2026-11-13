@@ -1,0 +1,69 @@
+# Current checkpoint
+
+ENTRY_ID: A6-CHECKPOINT-20261113
+UTC: 2026-11-13T13:50:57Z
+ACTOR: setup-agent
+TYPE: CHECKPOINT
+GOAL: NOT_SET
+TASK: D-A6-SETUP-20261113
+STATUS: IN_PROGRESS
+SUPERSEDES: none
+EVIDENCE: .authority/setup/setup-20261113T135057Z/discovery.json
+SUMMARY: New, empty, non-Git workspace. Authority 6.0 setup is active; no ROM product goal/history is known. Runtime and Atlas work are being installed locally.
+NEXT: Build, qualify, and record the required runtime; then perform native-host and fresh-session checks.
+
+## A6-CHECKPOINT-TAKEOVER-20261113 — ROM Shelf adoption and partial qualification
+
+ENTRY_ID: A6-CHECKPOINT-TAKEOVER-20261113
+UTC: 2026-11-13T14:55:34Z
+ACTOR: setup-agent
+TYPE: CHECKPOINT
+GOAL: A6-GOAL-ROM-SHELF-20261113
+TASK: D-A6-SETUP-20261113
+STATUS: PARTIAL
+SUPERSEDES: A6-CHECKPOINT-20261113
+EVIDENCE: .authority/setup/setup-20261113T135057Z/adoption.json; .authority/setup/setup-20261113T135057Z/coverage.json; .authority/setup/setup-20261113T135057Z/rom-shelf-build.json
+SUMMARY: Imported the frozen ROM Shelf source and supplied APK, built an unsigned release artifact, and verified Authority runtime/viewer behavior. Fresh Codex Desktop loading and ROM/save/emulator workflows remain open.
+NEXT: Open a fresh Codex Desktop session at this repository; then qualify app workflows with owner-controlled disposable ROM/save fixtures.
+
+## A6-CHECKPOINT-ROM-SHELF-REVIEW-FIX-20261113 — review fixes and source verification
+
+ENTRY_ID: A6-CHECKPOINT-ROM-SHELF-REVIEW-FIX-20261113
+UTC: 2026-11-13T15:20:26Z
+ACTOR: Codex
+TYPE: CHECKPOINT
+GOAL: A6-GOAL-ROM-SHELF-20261113
+TASK: D-ROM-SHELF-REVIEW-FIX-20261113
+STATUS: PARTIAL
+SUPERSEDES: A6-CHECKPOINT-TAKEOVER-20261113
+EVIDENCE: .authority/setup/setup-20261113T135057Z/rom-shelf-build.json; .authority/setup/setup-20261113T135057Z/coverage.json; RomShelf/PROJECT_HANDOFF.md
+SUMMARY: Fixed reviewed source defects in exact save target handling, artwork fetch policy, manual cover replacement, ZIP scan bounds, content hash freshness, and stable per-ROM preferences; added independent save folder selection for Shared, John GBA, and Pizza Boy. Seven JVM regression tests, release build, and lint vital passed. Product acceptance remains open for SAF/provider and real emulator behavior with controlled ROM/save fixtures.
+NEXT: Exercise the app on the owner device with disposable ROM/save fixtures; verify folder grants, duplicate presentation, save operations, and emulator launch/save pickup without touching existing game data.
+
+## A6-CHECKPOINT-ROM-SHELF-UPDATE-20261113 — signed update preparation
+
+ENTRY_ID: A6-CHECKPOINT-ROM-SHELF-UPDATE-20261113
+UTC: 2026-11-13T15:24:00Z
+ACTOR: Codex
+TYPE: CHECKPOINT
+GOAL: A6-GOAL-ROM-SHELF-20261113
+TASK: D-ROM-SHELF-SIGNED-UPDATE-20261113
+STATUS: PARTIAL
+SUPERSEDES: A6-CHECKPOINT-ROM-SHELF-REVIEW-FIX-20261113
+EVIDENCE: .authority/setup/setup-20261113T135057Z/rom-shelf-build.json; .authority/setup/setup-20261113T135057Z/coverage.json; artifacts/rom-shelf/apk/ROM-Shelf-0.3.1-unsigned-aligned.apk
+SUMMARY: Built and validated ROM Shelf 0.3.1/versionCode 4 as an update candidate. The Pixel's installed 0.3.0 APK signer matches the expected fingerprint. The original signing backup is unavailable in local key-file search and connected Drive; no replacement key was generated and no install attempted.
+NEXT: Use the owner's existing signing backup to sign the candidate, verify the fingerprint, and install it over Pixel 0.3.0. The signing backup location is requested from the owner.
+
+## A6-CHECKPOINT-ROM-SHELF-SIGNED-UPDATE-20261113 — update installed, repository push pending
+
+ENTRY_ID: A6-CHECKPOINT-ROM-SHELF-SIGNED-UPDATE-20261113
+UTC: 2026-11-13T16:10:00Z
+ACTOR: Codex
+TYPE: CHECKPOINT
+GOAL: A6-GOAL-ROM-SHELF-20261113
+TASK: D-ROM-SHELF-SIGNED-UPDATE-20261113
+STATUS: PARTIAL
+SUPERSEDES: A6-CHECKPOINT-ROM-SHELF-UPDATE-20261113
+EVIDENCE: .authority/setup/setup-20261113T135057Z/rom-shelf-build.json; .authority/setup/setup-20261113T135057Z/rom-shelf-device.json; artifacts/rom-shelf/apk/ROM-Shelf-0.3.1.apk
+SUMMARY: Signed 0.3.1/versionCode 4 with the original signer after certificate match, installed it in place over Pixel 0.3.0, verified the installed APK signer, and started MainActivity successfully. The signed artifact and source are prepared for the requested GitHub push; ROM/save/emulator feature acceptance remains open.
+NEXT: Commit and push this repository to SketchOTP/ROMLibrary using the supplied Git identity, then finish owner-controlled ROM/save/emulator acceptance when a fixture is available.

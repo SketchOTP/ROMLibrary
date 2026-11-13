@@ -1,0 +1,11 @@
+{
+  "schema_version": "authority.setup-state.v1",
+  "run_id": "setup-20261113T135057Z",
+  "mode": "NEW",
+  "phase": "P5",
+  "status": "PARTIAL",
+  "resume": false,
+  "source_snapshot": "pinned",
+  "receipts": "receipts.jsonl",
+  "next": "Push the current ROM Shelf source and signed 0.3.1 artifact to SketchOTP/ROMLibrary, then complete owner-controlled ROM, save, and emulator acceptance workflows."
+}

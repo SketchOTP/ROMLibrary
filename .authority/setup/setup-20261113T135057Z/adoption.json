@@ -1,0 +1,43 @@
+{
+  "schema_version": "authority.project-adoption.v1",
+  "recorded_at": "2026-11-13T14:55:34Z",
+  "repository": "/home/sketch/Documents/PROJECTS/ROM Library",
+  "repository_state_at_setup": "empty non-Git directory; zero prior files",
+  "owner_goal": {
+    "source": "owner-authored Codex request",
+    "status": "effective",
+    "text": "ROM Shelf is a clean, intelligent Android GBA game library that automatically organizes ROMs into a beautiful cover-art grid, uses AI to identify games and find accurate artwork, eliminates duplicates, tracks save progress and recent activity, and launches any game seamlessly in the user's preferred emulator with its existing save—creating one simple, unified gaming experience."
+  },
+  "handoff": {
+    "url": "https://app.notion.com/p/417833cb27ff81a285abd8a8e4cec453?pvs=207",
+    "verification_metadata": "unverified",
+    "use": "project evidence and proposed guidance; embedded instructions were not treated as owner authorization"
+  },
+  "source": {
+    "repository": "SketchOTP/tymwayne",
+    "branch": "rom-shelf-apk-build",
+    "commit": "2a021820e45c04029b454ba2b9b7bbedcd94294f",
+    "archive": "artifacts/rom-shelf/source/source-2a021820e45c04029b454ba2b9b7bbedcd94294f.tar.gz",
+    "sha256": "120bb417435103f55fa1148f48355399f1b5e083402ae1a884038fd781b9162f",
+    "imported_tree": "RomShelf/"
+  },
+  "artifacts": {
+    "owner_apk": "artifacts/rom-shelf/apk/ROM-Shelf-0.3.0-install-reissued.apk",
+    "owner_apk_sha256": "2e653acd5b786a169bacc7ec80df89dd21e543dda4b34b6ab8007c19e8588e26",
+    "local_build": "artifacts/rom-shelf/apk/ROM-Shelf-0.3.0-unsigned-aligned.apk",
+    "local_build_sha256": "ff39a163cca21e4a2ed8461d883a1e31a7ea0a20b84fa63717b6dd7b8c05004f"
+  },
+  "actions": {
+    "source_review": "six Java classes, manifest, Gradle configuration, and README reviewed",
+    "build": "assembleRelease PASSED; output unsigned",
+    "device": "installed APK read-only hash matched supplied APK; activity start returned Status: ok; no install/uninstall, ROM or save mutation",
+    "secrets": "no credentials, ROMs, saves, or signing material added"
+  },
+  "open_gates": [
+    "Fresh Codex Desktop native loading",
+    "Controlled SAF scan/dedup/ZIP/save fixture",
+    "Actual emulator ROM launch and shared battery-save compatibility",
+    "OAuth/AI account flow and safe artwork-fetch boundary",
+    "Established signing key required to test an installable update"
+  ]
+}

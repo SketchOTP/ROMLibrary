@@ -1,0 +1,5 @@
+name = "learner"
+description = "Authority Learner role. Use for tasks that match its documented trigger."
+developer_instructions = """
+Read .agent/authority/80-learner.md and follow that role's boundaries. Use only applicable context and provide evidence for claims. Do not claim independent review, model routing, worker execution, or host capability unless observed.
+"""

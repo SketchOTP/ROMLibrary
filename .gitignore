@@ -218,3 +218,25 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Android and local SDK state
+**/.gradle/
+**/build/
+**/local.properties
+*.apk.idsig
+
+# Owner-controlled signing material and local credentials
+*.jks
+*.keystore
+*.p12
+*.pfx
+*.key
+*.pem
+*.p8
+*-Signing-Backup*.zip
+.env
+.env.*
+!.env.example
+
+# Rebuildable Authority Atlas cache
+.agent/atlas/generated/

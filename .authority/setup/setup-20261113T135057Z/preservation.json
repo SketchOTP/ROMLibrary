@@ -1,0 +1,17 @@
+{
+  "schema_version": "authority.preservation.v1",
+  "observed_at": "2026-11-13T13:50:57Z",
+  "prior_root_contents": 0,
+  "prior_file_hashes": [],
+  "prior_ledger_lengths": [],
+  "prior_instruction_files": {
+    "ancestor_agents": "none except empty user-level /home/sketch/.codex/AGENTS.md",
+    "project_override": "none"
+  },
+  "backups": {
+    "required": false,
+    "reason": "target directory was empty before setup; no previous project bytes or ledgers to preserve",
+    "path": null
+  },
+  "uncommitted_work": "not applicable; no Git repository"
+}

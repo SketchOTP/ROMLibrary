@@ -1,0 +1,51 @@
+{
+  "schema_version": "authority.setup-plan.v1",
+  "run_id": "setup-20261113T135057Z",
+  "status": "PARTIALLY_VERIFIED",
+  "expected_current_version": "NEW_EMPTY_DIRECTORY",
+  "changes": [
+    {
+      "target": "AGENTS.md, .agent/**, .agents/skills/**, .codex/agents/**",
+      "purpose": "Codex adapter, shared router, canonical records, roles, and skills"
+    },
+    {
+      "target": ".authority/runtime/**",
+      "purpose": "local Python/SQLite retrieval and visual Atlas runtime"
+    },
+    {
+      "target": ".agent/atlas/RELATIONSHIPS.jsonl and REPOSITORY.json",
+      "purpose": "stable repository/file identity and evidenced links"
+    },
+    {
+      "target": ".authority/setup/setup-20261113T135057Z/**",
+      "purpose": "source pin, plan, coverage, receipts, and recovery"
+    }
+  ],
+  "dependencies": [
+    "Python 3.12",
+    "SQLite FTS5 (observed supported)"
+  ],
+  "validation": [
+    "CLI smoke checks",
+    "disposable recovery/freshness fixture",
+    "real local viewer interaction",
+    "fresh Codex Desktop load/handoff"
+  ],
+  "impact_triage": {
+    "observed": [
+      "The directory was empty and had no Git root, application files, or prior Authority state."
+    ],
+    "supported_inference": [
+      "Repo-local instructions will affect future Codex sessions opened at this path."
+    ],
+    "unknown": [
+      "Fresh Codex Desktop loading at this repository path",
+      "Owner-controlled ROM, save, and emulator behavior on the Pixel",
+      "Live OAuth and AI behavior"
+    ],
+    "alternative": "Templates-only setup would omit required search, freshness, and viewer behavior.",
+    "reversibility": "New files are local and no pre-existing content was overwritten.",
+    "conductor_disposition": "PARTIAL: repository setup, imported source, local build, Authority runtime, and viewer are evidenced; native fresh-session and app acceptance gates remain open.",
+    "revisit_trigger": "Fresh Desktop verification, approved ROM/save fixture, signing-key availability for update tests, or changed project goal."
+  }
+}

@@ -1,0 +1,9 @@
+# ROM Shelf preserved artifacts
+
+- `source/source-2a021820e45c04029b454ba2b9b7bbedcd94294f.tar.gz` is the exact source archive fetched from the private handoff branch at commit `2a021820e45c04029b454ba2b9b7bbedcd94294f`. GitHub blob SHA-1: `6bb2d45480d4892b714d1133e4abfd318b06316e`; SHA-256: `120bb417435103f55fa1148f48355399f1b5e083402ae1a884038fd781b9162f`.
+- `apk/ROM-Shelf-0.3.0-install-reissued.apk` is the APK supplied with the takeover request. SHA-256: `2e653acd5b786a169bacc7ec80df89dd21e543dda4b34b6ab8007c19e8588e26`.
+- `apk/ROM-Shelf-0.3.0-unsigned-aligned.apk` is the refreshed local release build from the post-review working source. SHA-256: `02e8bf534fbc7de999b999b0d52780f8930539ee8fa6a6d040bde2f3828d71f9`. Unit tests, release build, lint vital, ZIP integrity, and 4-byte alignment passed. It is unsigned and cannot be installed as an update.
+- `apk/ROM-Shelf-0.3.1-unsigned-aligned.apk` is the update candidate (version code 4), built from the same reviewed source with the version increment required for Android updates. SHA-256: `77681fa089d63df384238997673e475d9d6b436da5f3eb465702870ccfed3acb`. It passes unit tests, release build, lint vital, ZIP integrity, and alignment checks, but remains unsigned until the established owner key is available.
+- `apk/ROM-Shelf-0.3.1.apk` is the signed update installed over the Pixel's 0.3.0 version. SHA-256: `954a1c6e082b799d6e24f0ced6439e771d45651c0bdd33acd9ae2e54860d0085`. Its v2/v3 signer matches the established certificate SHA-256 `b094cd94d6975c3c62c467658d38523091c638068b9fb3b06d0d2998a19d2456`; the private signing backup is not part of this repository.
+
+The source archive and supplied APK are retained unchanged for provenance; the unsigned and signed 0.3.1 APKs are generated from the current workspace source. No ROMs, saves, credentials, or signing keys are included.

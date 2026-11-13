@@ -1,0 +1,79 @@
+{
+  "schema_version": "rom-shelf.build-evidence.v1",
+  "recorded_at": "2026-11-13T16:10:00Z",
+  "source": {
+    "repository": "SketchOTP/tymwayne",
+    "branch": "rom-shelf-apk-build",
+    "commit": "2a021820e45c04029b454ba2b9b7bbedcd94294f",
+    "archive_path": "artifacts/rom-shelf/source/source-2a021820e45c04029b454ba2b9b7bbedcd94294f.tar.gz",
+    "archive_git_blob_sha1": "6bb2d45480d4892b714d1133e4abfd318b06316e",
+    "archive_sha256": "120bb417435103f55fa1148f48355399f1b5e083402ae1a884038fd781b9162f"
+  },
+  "build": {
+    "command": "./gradlew --no-daemon testDebugUnitTest assembleRelease",
+    "working_directory": "RomShelf/",
+    "status": "PASSED",
+    "gradle": "8.13",
+    "android_gradle_plugin": "8.13.2",
+    "java_runtime": "OpenJDK 21.0.13",
+    "android_compile_sdk": 36,
+    "android_build_tools": "36.0.0",
+    "tasks": "66 actionable tasks; final run completed testDebugUnitTest, assembleRelease, and lintVitalRelease successfully",
+    "working_source_fixes": [
+      "Save transfer, import, and restore now preserve the exact selected SAF document as backup and write target; staged backups are unique and verified writes clean up failed new files.",
+      "Artwork image fetches require HTTPS on the exact thumbnails.libretro.com host and recheck redirects; stale AI artwork state is cleared when no approved URL is returned.",
+      "Manual covers are size-limited, validated in a staged file, and atomically replaced.",
+      "ZIP hashing bounds entry walk, pre-ROM decompression, entry-name length, and ROM size, including directory-named payloads.",
+      "Full ROM scans recompute content hashes; readable content hashes key per-game state, with URI-key migration.",
+      "Shared, John GBA, and Pizza Boy save folders can be selected and scanned independently."
+    ],
+    "reviewed_source_changes": [
+      "OAuth plan scope now requires an exact space-separated token match.",
+      "Model resolution uses the first account-catalog model with visibility=list and preserves server order."
+    ],
+    "unit_tests": "7 local JVM regression tests passed; 0 failures; covers artwork URL policy, ZIP work bounds including directory entries, content identity, and staged cover replacement",
+    "instrumentation_tests": "not present; signed update installed on Pixel and launcher activity smoke test passed"
+  },
+  "output": {
+    "path": "artifacts/rom-shelf/apk/ROM-Shelf-0.3.1.apk",
+    "sha256": "954a1c6e082b799d6e24f0ced6439e771d45651c0bdd33acd9ae2e54860d0085",
+    "bytes": 1130106,
+    "application_id": "com.animus.romshelf.launcher",
+    "version_name": "0.3.1",
+    "version_code": 4,
+    "zip_integrity": "PASSED",
+    "zipalign_4_byte": "PASSED with Android build-tools 36.0.0",
+    "signature": "PASSED v2/v3 with apksigner; signer fingerprint matches expected certificate",
+    "signing_certificate_sha256": "b094cd94d6975c3c62c467658d38523091c638068b9fb3b06d0d2998a19d2456",
+    "signing_key_handling": "Original owner PKCS#12 key used from reissued local backup; extracted under private temporary permissions and excluded from repository, logs, and artifacts",
+    "update_target": {
+      "device": "Pixel 11 Pro Fold",
+      "installed_package": "com.animus.romshelf.launcher",
+      "installed_version_name": "0.3.1",
+      "installed_version_code": 4,
+      "installed_signer_sha256": "b094cd94d6975c3c62c467658d38523091c638068b9fb3b06d0d2998a19d2456",
+      "expected_signer_match": "PASSED against supplied 0.3.0 APK",
+      "install_update": "PASSED; adb install -r returned Success over versionCode 3",
+      "launcher_smoke_test": "PASSED; MainActivity returned Status: ok and process remained alive"
+    }
+  },
+  "unsigned_input": {
+    "path": "artifacts/rom-shelf/apk/ROM-Shelf-0.3.1-unsigned-aligned.apk",
+    "sha256": "77681fa089d63df384238997673e475d9d6b436da5f3eb465702870ccfed3acb",
+    "bytes": 1111015
+  },
+  "supplied_apk": {
+    "path": "artifacts/rom-shelf/apk/ROM-Shelf-0.3.0-install-reissued.apk",
+    "sha256": "2e653acd5b786a169bacc7ec80df89dd21e543dda4b34b6ab8007c19e8588e26",
+    "apksigner": {
+      "v1": false,
+      "v2": true,
+      "v3": true,
+      "v3_1": false,
+      "v4": false,
+      "signers": 1,
+      "certificate_sha256": "b094cd94d6975c3c62c467658d38523091c638068b9fb3b06d0d2998a19d2456",
+      "verified": "PASSED for declared v2 and v3; no source stamp or v4 sidecar"
+    }
+  }
+}

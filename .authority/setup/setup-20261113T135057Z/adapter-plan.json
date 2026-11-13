@@ -1,0 +1,67 @@
+{
+  "schema_version": "authority.adapter-plan.v1",
+  "target": "Codex Desktop 26.1111.21308",
+  "adapter": "Codex native",
+  "activation_order": [
+    {
+      "logical_module": "small router",
+      "path": "AGENTS.md",
+      "trigger": "always loaded for the workspace"
+    },
+    {
+      "logical_module": "core contract",
+      "path": ".agent/authority/00-core.md",
+      "trigger": "read once per session and on change"
+    },
+    {
+      "logical_module": "task route table",
+      "path": ".agent/ROUTES.md",
+      "trigger": "task start"
+    },
+    {
+      "logical_module": "procedures",
+      "path": ".authority/procedures/*.md",
+      "trigger": "selected by task type"
+    },
+    {
+      "logical_module": "specialist roles",
+      "path": ".agent/authority/*.md",
+      "trigger": "matching role task only"
+    },
+    {
+      "logical_module": "Codex custom profiles",
+      "path": ".codex/agents/*.toml",
+      "trigger": "explicit role delegation by the Conductor"
+    },
+    {
+      "logical_module": "skills",
+      "path": ".agents/skills/*/SKILL.md",
+      "trigger": "Codex discovery and task relevance"
+    }
+  ],
+  "path_mapping": {
+    "source_template_workflows": ".agent/workflows/*.md",
+    "installed_procedures": ".authority/procedures/*.md",
+    "reason": "avoid native discovery collision; update router and relative references"
+  },
+  "files_owned": [
+    "AGENTS.md",
+    ".agent/**",
+    ".authority/**",
+    ".agents/skills/**",
+    ".codex/agents/**",
+    "README.md"
+  ],
+  "settings": {
+    "created": [],
+    "modified": [],
+    "hooks": [],
+    "global_changes": []
+  },
+  "version_basis": "Codex native formats documented 2026-11-13; actual fresh Desktop loading still requires verification.",
+  "validation": [
+    "parse TOML profile files",
+    "fresh Codex Desktop session with normal workspace discovery"
+  ],
+  "rollback": "Remove only setup-owned files after preserving any later user edits; no pre-existing files existed at setup start."
+}

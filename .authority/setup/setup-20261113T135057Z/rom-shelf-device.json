@@ -1,0 +1,34 @@
+{
+  "schema_version": "rom-shelf.device-evidence.v1",
+  "recorded_at": "2026-11-13T16:10:00Z",
+  "device": {
+    "target_role": "owner-authorized Pixel test phone",
+    "model": "Pixel 11 Pro Fold",
+    "android_version": "17",
+    "sdk": 37,
+    "usb_serial": "stored only in local REA evidence; omitted from project handoff"
+  },
+  "installed_packages_before_test": [
+    {"package": "com.animus.romshelf.launcher", "version_name": "0.3.0", "version_code": "3", "first_install_time": "2026-11-13 02:39:51", "last_update_time": "2026-11-13 02:39:51", "apk_sha256": "2e653acd5b786a169bacc7ec80df89dd21e543dda4b34b6ab8007c19e8588e26"},
+    {"package": "com.animus.romshelf", "version_name": "0.1.0", "version_code": "1", "first_install_time": "2026-11-12 21:25:40", "last_update_time": "2026-11-12 21:25:40"}
+  ],
+  "installed_packages_after_update": [
+    {"package": "com.animus.romshelf.launcher", "version_name": "0.3.1", "version_code": "4", "first_install_time": "2026-11-13 02:39:51", "last_update_time": "2026-11-13 11:10:14", "apk_sha256": "954a1c6e082b799d6e24f0ced6439e771d45651c0bdd33acd9ae2e54860d0085", "signer_sha256": "b094cd94d6975c3c62c467658d38523091c638068b9fb3b06d0d2998a19d2456"}
+  ],
+  "actions": {
+    "installed_apk_pull": "READ_ONLY; pulled 0.3.0 base APK digest matched supplied APK byte-for-byte",
+    "update_compatibility_probe": "Before update, Pixel had versionCode 3/versionName 0.3.0; pulled APK v2/v3 signer fingerprint matched expected b094cd94d6975c3c62c467658d38523091c638068b9fb3b06d0d2998a19d2456",
+    "update_candidate": "0.3.1 versionCode 4 signed with original owner key after expected certificate fingerprint matched",
+    "launch_request": "am start -W returned Status: ok for com.animus.romshelf.launcher/com.animus.romshelf.MainActivity",
+    "signed_update": "adb install -r returned Success over version 0.3.0/versionCode 3; installed APK was pulled and apksigner confirmed the expected v2/v3 signer",
+    "launcher_after_update": "Status: ok; app process remained alive",
+    "reinstall_or_uninstall": "No uninstall or clean reinstall; in-place signed update completed",
+    "rom_or_save_mutation": "NOT_PERFORMED",
+    "ui_acceptance": "PARTIAL; launcher smoke test passed, but ROM display and emulator/save workflows were not exercised"
+  },
+  "limits": [
+    "The initial 0.3.0 install predated takeover; 0.3.1 updated in place and preserved the original firstInstallTime. No clean-install test was performed.",
+    "No user-controlled ROM or battery-save fixture was selected or modified.",
+    "A successful launcher start does not prove ROM identification, actual emulator ROM loading, or save compatibility."
+  ]
+}

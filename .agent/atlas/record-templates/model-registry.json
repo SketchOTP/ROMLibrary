@@ -1,0 +1,39 @@
+{
+  "schema_version": "authority.routing.v1",
+  "updated_at": null,
+  "candidates": [
+    {
+      "candidate_id": "candidate-unresolved",
+      "provider": null,
+      "model_id": null,
+      "snapshot": null,
+      "reasoning_effort": null,
+      "workflow_version": null,
+      "host": null,
+      "available_in_host": null,
+      "availability_checked_at": null,
+      "eligible": false,
+      "capabilities": {
+        "tools": [],
+        "modalities": [],
+        "context_tokens": null
+      },
+      "pricing": {
+        "billing_mode": null,
+        "currency": null,
+        "tier": null,
+        "context_conditions": null,
+        "input_per_million": null,
+        "output_per_million": null,
+        "cached_input_per_million": null,
+        "cache_write_per_million": null,
+        "other_charges": [],
+        "source_url": null,
+        "checked_at": null
+      },
+      "benchmark_evidence": [],
+      "local_evidence": [],
+      "limitations": []
+    }
+  ]
+}

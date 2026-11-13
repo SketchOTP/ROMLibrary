@@ -1,0 +1,22 @@
+plugins { id 'com.android.application' }
+
+android {
+    namespace 'com.animus.romshelf'
+    compileSdk 36
+    defaultConfig {
+        applicationId 'com.animus.romshelf.launcher'
+        minSdk 26
+        targetSdk 35
+        versionCode 4
+        versionName '0.3.1'
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+dependencies {
+    implementation 'androidx.documentfile:documentfile:1.1.0'
+    testImplementation 'junit:junit:4.13.2'
+}

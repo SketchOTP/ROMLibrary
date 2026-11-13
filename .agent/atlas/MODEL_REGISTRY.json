@@ -1,0 +1,43 @@
+{
+  "schema_version": "authority.routing.v1",
+  "updated_at": "2026-11-13T13:50:57Z",
+  "candidates": [
+    {
+      "candidate_id": "candidate-unresolved",
+      "provider": null,
+      "model_id": null,
+      "snapshot": null,
+      "reasoning_effort": null,
+      "workflow_version": "Authority 6.0 / workspace-runtime 0.1.0",
+      "host": "Codex Desktop",
+      "available_in_host": null,
+      "availability_checked_at": null,
+      "eligible": false,
+      "capabilities": {
+        "tools": [],
+        "modalities": [],
+        "context_tokens": null
+      },
+      "pricing": {
+        "billing_mode": null,
+        "currency": null,
+        "tier": null,
+        "context_conditions": null,
+        "input_per_million": null,
+        "output_per_million": null,
+        "cached_input_per_million": null,
+        "cache_write_per_million": null,
+        "other_charges": [],
+        "source_url": null,
+        "checked_at": null
+      },
+      "benchmark_evidence": [],
+      "local_evidence": [],
+      "limitations": [
+        "Active model identifier and per-role model routing are not observable from this setup context.",
+        "No local task-quality, latency, token, or cost benchmark has been run.",
+        "Profiles inherit the host-selected model and permissions; no unverified model identifier is configured."
+      ]
+    }
+  ]
+}
