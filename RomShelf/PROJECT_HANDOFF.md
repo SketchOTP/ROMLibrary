@@ -75,3 +75,16 @@ This section supersedes the original charter's optional AI matching and preferre
 - **Still pending:** reconnect the Pixel, compare live `.sav` modification times (especially `monomyth_v1_1.sav`) against all current saves and Pizza Boy's inactive private save copies, inspect Pizza Boy's screenshot/preview output folder, install 0.3.6 over the same signed package, and verify the Pizza-only menu, Eastern-time label, and screenshot source/cache behavior. Do not change saves during the timestamp check.
 
 Historical sections above describe the source state and claims at takeover. They remain records, not current product direction.
+
+## Follow-up — Pizza quickstate recency — 2026-11-13
+
+The owner's current focus is to launch every title through Pizza Boy and treat the newest usable Pizza state or shared John/Pizza battery save as the most recent progress.
+
+- ROM Shelf 0.3.7/versionCode 10 adds completed Pizza launch-session return times to Recent ordering, compares that activity time with the shared `.sav` timestamp, and labels the source under each title in Eastern Time. Details/help state that a session timestamp is only an activity estimate.
+- Every game card reaches the same `launchGame()` / explicit Pizza Boy intent path. On the Pixel, a Monomyth card tap foregrounded Pizza Boy Pro and passed its selected ROM content URI. Pizza reported that the same ROM was already running, so that final tap did not force a fresh emulator reload.
+- Pizza Boy Pro's Save settings were observed with **Auto Load Stat** on, **Auto Save Stat** on, and automatic slot **1** selected. Five automatic slot-1 states were present; four had exact matching shared `.sav` files and newer state timestamps at inspection, while one had no battery save. The Monomyth automatic state timestamp was rewritten during this verification; it cannot be used as evidence of when the owner last played. A pre-change copy of the Monomyth state and preview remains outside the repository in local recovery storage.
+- The Pixel installed 0.3.7 over the existing app. The live library remained visible with 49 games, 31 battery saves, and three exact duplicates hidden. Returning from Pizza displayed a `Pizza session` time for Monomyth and placed it first in Recent sorting.
+- `./gradlew testDebugUnitTest assembleRelease lintVitalRelease` passed: eight unit tests, release assembly, and release lint. The signed APK was verified with the established certificate and zip alignment; in-place installation succeeded.
+- **Platform limit:** Android prevents ROM Shelf from selecting/reading Pizza Boy's `Android/data` tree. Therefore ROM Shelf cannot directly compare a live `.stat` modification time against `.sav` or prove which file is newer. Pizza's own automatic slot restores/updates the state; ROM Shelf's session timestamp improves recency but is not a direct state-file timestamp. A direct comparison requires Pizza Boy to expose state timestamps through shared storage or an integration API. Do not claim exact quickstate recency from the current app-side timestamp.
+
+Evidence: `.authority/setup/rom-shelf-quickstate-recency-20261113.json`.

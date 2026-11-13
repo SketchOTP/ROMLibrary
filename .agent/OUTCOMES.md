@@ -309,3 +309,45 @@ SUPERSEDES: none
 EVIDENCE: .agent/CURRENT.md; .authority/setup/rom-shelf-release-0.3.6-20261113.json
 SUMMARY: The signed 0.3.6 source and APK are prepared; prior merge/launch evidence remains valid. The Monomyth freshness check and install-on-device acceptance are not claimed until the Pixel reconnects.
 NEXT: Resume live Pixel acceptance when the phone is visible over ADB.
+
+## A6-WORKER-ROM-SHELF-QUICKSTATE-RECENCY-20261113 — WORKER_REPORT
+
+ENTRY_ID: A6-WORKER-ROM-SHELF-QUICKSTATE-RECENCY-20261113
+UTC: 2026-11-13T20:44:27Z
+ACTOR: Codex
+TYPE: WORKER_REPORT
+GOAL: A6-GOAL-ROM-SHELF-SHARED-PIZZA-20261113
+TASK: D-ROM-SHELF-QUICKSTATE-RECENCY-20261113
+STATUS: REPORTED
+SUPERSEDES: none
+EVIDENCE: .authority/setup/rom-shelf-quickstate-recency-20261113.json; RomShelf/app/src/main/java/com/animus/romshelf/Game.java; RomShelf/app/src/main/java/com/animus/romshelf/MainActivity.java; artifacts/rom-shelf/apk/ROM-Shelf-0.3.7.apk
+SUMMARY: Added a Recent activity timestamp that uses the later shared battery-save time or completed Pizza launch-session return time, labels its source, and preserves the single Pizza Boy launch path. On the Pixel, Auto Load Stat and Auto Save Stat are enabled with slot 1; signed 0.3.7 installed in place.
+NEXT: Keep the source limitation explicit: the app cannot read Pizza's exact private .stat modification times, so the session timestamp is not a direct quickstate timestamp.
+
+## A6-VERIFIER-ROM-SHELF-QUICKSTATE-RECENCY-20261113 — VERIFICATION
+
+ENTRY_ID: A6-VERIFIER-ROM-SHELF-QUICKSTATE-RECENCY-20261113
+UTC: 2026-11-13T20:44:27Z
+ACTOR: Codex
+TYPE: VERIFICATION
+GOAL: A6-GOAL-ROM-SHELF-SHARED-PIZZA-20261113
+TASK: D-ROM-SHELF-QUICKSTATE-RECENCY-20261113
+STATUS: PARTIAL
+SUPERSEDES: none
+EVIDENCE: .authority/setup/rom-shelf-quickstate-recency-20261113.json; RomShelf/app/build/test-results/testDebugUnitTest/TEST-com.animus.romshelf.SafetyRegressionTest.xml; Pixel wireless ADB observation
+SUMMARY: Eight unit tests, assembleRelease, lintVitalRelease, apksigner verification, zip alignment, and in-place Pixel installation passed. The live library rendered 49 games and showed Monomyth first with a Pizza session time after return. A 0.3.7 card tap foregrounded Pizza Boy with the Monomyth URI; Pizza reported that this ROM was already running, so that tap did not prove a fresh save-state reload. Five Pizza automatic slot-1 states were inspected; four had matching newer .sav files and one was state-only, but Monomyth's timestamp was affected by verification.
+NEXT: A direct newest-.stat-versus-.sav selection guarantee needs Pizza Boy to expose state timestamps to ROM Shelf or provide an integration API.
+
+## A6-CONDUCTOR-ROM-SHELF-QUICKSTATE-RECENCY-20261113 — CONDUCTOR_DISPOSITION
+
+ENTRY_ID: A6-CONDUCTOR-ROM-SHELF-QUICKSTATE-RECENCY-20261113
+UTC: 2026-11-13T20:44:27Z
+ACTOR: Codex
+TYPE: CONDUCTOR_DISPOSITION
+GOAL: A6-GOAL-ROM-SHELF-SHARED-PIZZA-20261113
+TASK: D-ROM-SHELF-QUICKSTATE-RECENCY-20261113
+STATUS: PARTIAL
+SUPERSEDES: none
+EVIDENCE: .authority/setup/rom-shelf-quickstate-recency-20261113.json; RomShelf/PROJECT_HANDOFF.md; Pixel device verification
+SUMMARY: Accepted the 0.3.7 session-aware Recent behavior, Pizza auto-state configuration, and installed update. Exact quickstate timestamps remain unavailable to the app under Android storage restrictions; UI recency therefore uses an honest session-return estimate rather than claiming an exact .stat comparison.
+NEXT: Do not represent the session timestamp as the Pizza state-file save time. Revisit direct comparison only if Pizza exposes state metadata through shared storage or a supported integration API.

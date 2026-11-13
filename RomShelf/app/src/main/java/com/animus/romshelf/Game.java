@@ -19,6 +19,7 @@ final class Game {
     final List<String> saveStems = new ArrayList<>();
     DocumentFile sharedSave;
     long sharedStamp;
+    long pizzaSessionStamp;
     String fingerprint;
 
     private static final Pattern VERSION = Pattern.compile("(?i)(?<![a-z0-9])v(?:er(?:sion)?)?[ ._-]*(\\d+(?:\\.\\d+){0,3}(?:[-_ ]?(?:alpha|beta|rc)\\d*)?)");
@@ -69,6 +70,7 @@ final class Game {
         for (String oldKey : other.legacyKeys) if (!legacyKeys.contains(oldKey)) legacyKeys.add(oldKey);
         for (String s : other.saveStems) if (!saveStems.contains(s)) saveStems.add(s);
         if (other.sharedSave != null && (sharedSave == null || other.sharedStamp > sharedStamp)) { sharedSave = other.sharedSave; sharedStamp = other.sharedStamp; }
+        pizzaSessionStamp = Math.max(pizzaSessionStamp, other.pizzaSessionStamp);
     }
 
     void setFingerprint(String digest) {
@@ -82,12 +84,20 @@ final class Game {
         copy.title = title;
         copy.version = version;
         copy.fingerprint = fingerprint;
+        copy.pizzaSessionStamp = pizzaSessionStamp;
         copy.saveStems.clear(); copy.saveStems.addAll(saveStems);
         copy.legacyKeys.clear(); copy.legacyKeys.addAll(legacyKeys);
         return copy;
     }
 
-    long lastPlayedEstimate() { return sharedStamp; }
+    static long newestActivityTime(long batterySaveMillis, long pizzaSessionMillis) {
+        return Math.max(Math.max(0, batterySaveMillis), Math.max(0, pizzaSessionMillis));
+    }
+    long lastPlayedEstimate() { return newestActivityTime(sharedStamp, pizzaSessionStamp); }
+    String activitySource() {
+        if (pizzaSessionStamp > sharedStamp) return "Pizza session";
+        return sharedStamp > 0 ? "Battery save" : (pizzaSessionStamp > 0 ? "Pizza session" : "Not played");
+    }
     String saveStatus() { return sharedSave != null ? "SAVED" : "NO SAVE"; }
     String nameForSave() { return stem + ".sav"; }
     String keyForSave() { return stem.toLowerCase(Locale.ROOT); }

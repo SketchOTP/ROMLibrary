@@ -1,0 +1,56 @@
+{
+  "recorded_at_utc": "2026-11-13T20:44:27Z",
+  "task": "D-ROM-SHELF-QUICKSTATE-RECENCY-20261113",
+  "release": {
+    "version_name": "0.3.7",
+    "version_code": 10,
+    "application_id": "com.animus.romshelf.launcher",
+    "apk": "artifacts/rom-shelf/apk/ROM-Shelf-0.3.7.apk",
+    "apk_sha256": "73e48c7ffa05cb469d04cb385d4605a3b3c8730aba10d1c5d30ac8099ec0971f",
+    "unsigned_aligned_apk": "artifacts/rom-shelf/apk/ROM-Shelf-0.3.7-unsigned-aligned.apk",
+    "unsigned_aligned_sha256": "654f6e0c244adb746542eda4a30c5dd49003caf8fabf780eff1c9117cbc08903",
+    "zipalign_check": "passed",
+    "apksigner_verify": "passed",
+    "certificate_sha256": "b094cd94d6975c3c62c467658d38523091c638068b9fb3b06d0d2998a19d2456"
+  },
+  "build": {
+    "command": "./gradlew testDebugUnitTest assembleRelease lintVitalRelease",
+    "status": "passed",
+    "unit_test_counts": {
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "release_lint_vital": "passed"
+  },
+  "implementation": {
+    "launch_target": "Pizza Boy family only; one app-wide selection shared by every game card",
+    "recent_activity": "Sorts by the later shared .sav timestamp or completed Pizza launch-session return timestamp; each card labels its displayed source in America/New_York time",
+    "quickstate_timestamp_limit": "ROM Shelf cannot read Pizza Boy's exact .stat timestamps on current Android; the Pizza-session timestamp is an activity estimate, not a direct quickstate mtime",
+    "battery_save_folder": "Existing shared Johnemulators/GBA/save tree; unchanged",
+    "ai": "No AI resolver or OAuth added"
+  },
+  "device": {
+    "device": "Owner Pixel via wireless ADB",
+    "android_api": 37,
+    "rom_shelf_installed": "0.3.7 / versionCode 10; adb install -r succeeded over existing app data",
+    "foreground_after_install": "ROM Shelf MainActivity",
+    "library_visible": "49 games, 31 with shared battery saves, 3 exact duplicates hidden",
+    "pizza_package": "it.dbtecno.pizzaboygbapro",
+    "pizza_settings_observed": {
+      "auto_load_stat": true,
+      "auto_save_stat": true,
+      "auto_save_slot": 1
+    },
+    "launch_observation": "A Monomyth card tap in 0.3.7 foregrounded Pizza Boy Pro and passed the selected external-storage content URI. Pizza logged that the same ROM was already running, so this final tap reused the current game session rather than proving a fresh state reload.",
+    "recent_label_observed": "After returning to ROM Shelf, the Monomyth card displayed a Pizza session timestamp in EST and remained first in Recent sorting.",
+    "quickstate_inventory": "Five Pizza automatic slot-1 states were present; four had matching shared battery saves and their state timestamps were newer at observation, while one had no matching battery save. Monomyth's state was rewritten during this verification after Auto Save Stat was enabled; no owner play-time inference is drawn from that test timestamp.",
+    "recovery": "A pre-change Monomyth automatic slot and preview copy were preserved in private local recovery storage outside the repository; no state bytes are included here."
+  },
+  "limitations": [
+    "Android restricts access to other apps' Android/data directories, including through ACTION_OPEN_DOCUMENT_TREE; the app cannot directly compare live Pizza .stat mtimes with shared .sav mtimes.",
+    "The session return timestamp is a recent-activity estimate and cannot prove Pizza wrote a quickstate or that the exact state timestamp exceeded a battery-save timestamp.",
+    "This turn did not force-stop or reload the already-running Monomyth game after the 0.3.7 install."
+  ]
+}

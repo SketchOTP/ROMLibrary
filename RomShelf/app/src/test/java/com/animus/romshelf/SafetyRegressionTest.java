@@ -94,6 +94,12 @@ public final class SafetyRegressionTest {
         assertTrue(RomIdentity.key(digest.toUpperCase(Locale.ROOT), "uri-a").equals("uri-a"));
     }
 
+    @Test public void recentActivityUsesNewestBatterySaveOrPizzaSession() {
+        assertEquals(300L, Game.newestActivityTime(200L, 300L));
+        assertEquals(400L, Game.newestActivityTime(400L, 300L));
+        assertEquals(0L, Game.newestActivityTime(-10L, 0L));
+    }
+
     @Test public void rejectedCoverReplacementPreservesExistingImage() throws Exception {
         File target = temporary.newFile("cover.img");
         Files.write(target.toPath(), "old cover".getBytes(StandardCharsets.UTF_8));

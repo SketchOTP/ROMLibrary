@@ -110,3 +110,17 @@ SUPERSEDES: A6-CHECKPOINT-ROM-SHELF-COVERS-20261113
 EVIDENCE: .authority/setup/rom-shelf-release-0.3.6-20261113.json; RomShelf/README.md; RomShelf/PROJECT_HANDOFF.md
 SUMMARY: ROM Shelf 0.3.6/versionCode 9 builds with seven JVM tests passing and release lint vital passing. The APK is zipaligned and signed with the original expected certificate; SHA-256 is 30f7fcefcd76fa1e373c4ece779eba9472417a798d3b24f04da62d0e45599a5f. Settings and data routing now use one canonical John GBA/Pizza Boy save folder and a global Pizza Boy launcher; John GBA and its data are preserved. AI resolver/OAuth source is removed. Eastern-time save labels and Pizza launch-session screenshot association are included. The Pixel is disconnected; only the tablet is visible and untouched. Live Monomyth comparison, screenshot folder inspection, install and device UI verification remain pending.
 NEXT: When Pixel reconnects, inspect all candidate save copies read-only, determine whether Monomyth is the newest Pizza save, verify/adjust Pizza Boy's save folder only with preserved backup evidence, then install and verify 0.3.6.
+
+## A6-CHECKPOINT-ROM-SHELF-QUICKSTATE-RECENCY-20261113 — 0.3.7 installed; exact state-time comparison limited
+
+ENTRY_ID: A6-CHECKPOINT-ROM-SHELF-QUICKSTATE-RECENCY-20261113
+UTC: 2026-11-13T20:44:27Z
+ACTOR: Codex
+TYPE: CHECKPOINT
+GOAL: A6-GOAL-ROM-SHELF-SHARED-PIZZA-20261113
+TASK: D-ROM-SHELF-QUICKSTATE-RECENCY-20261113
+STATUS: PARTIAL
+SUPERSEDES: A6-CHECKPOINT-ROM-SHELF-036-PREP-20261113
+EVIDENCE: .authority/setup/rom-shelf-quickstate-recency-20261113.json; RomShelf/PROJECT_HANDOFF.md; artifacts/rom-shelf/apk/ROM-Shelf-0.3.7.apk
+SUMMARY: ROM Shelf 0.3.7/versionCode 10 is signed with the established owner certificate and installed over the existing Pixel app data. All game cards still use the global Pizza Boy launch route. Pizza Auto Load Stat and Auto Save Stat are enabled with automatic slot 1. Recent sorting now compares shared battery-save time to the last completed ROM Shelf → Pizza session return time and labels the date source. Eight unit tests, release build, lint vital, signature and alignment checks passed. The app cannot directly read Pizza's private state timestamps; Monomyth's slot was rewritten during verification, so test time is not owner play-time evidence. A pre-change state/preview copy remains outside the repo.
+NEXT: A direct guarantee that the newest `.stat` or `.sav` wins requires Pizza Boy to expose state timestamps via shared storage or a supported API. Keep the session timestamp explicitly labeled as an estimate; do not claim exact state-file comparison.

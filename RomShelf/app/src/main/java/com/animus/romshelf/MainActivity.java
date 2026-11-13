@@ -95,6 +95,7 @@ public final class MainActivity extends Activity {
         String key = appPrefs.getString("pending_screenshot_game", "");
         long launchedAt = appPrefs.getLong("pending_screenshot_after", 0);
         if (key.isEmpty() || launchedAt <= 0) return;
+        recordPendingPizzaSession(key, launchedAt);
         if (!capturingScreenshot.compareAndSet(false, true)) return;
         Game game = null;
         for (Game candidate : games) if (candidate.key.equals(key)) { game = candidate; break; }
@@ -105,11 +106,22 @@ public final class MainActivity extends Activity {
             try { captured = covers.captureLatestPizzaScreenshot(launchedGame, launchedAt); }
             catch (Exception ignored) { }
             finally {
-                appPrefs.edit().remove("pending_screenshot_game").remove("pending_screenshot_after").apply();
+                appPrefs.edit().remove("pending_screenshot_game").remove("pending_screenshot_after")
+                    .remove("pending_pizza_session_recorded").apply();
                 capturingScreenshot.set(false);
             }
             if (captured) main.post(this::render);
         });
+    }
+
+    private void recordPendingPizzaSession(String gameKey, long launchedAt) {
+        if (appPrefs.getBoolean("pending_pizza_session_recorded", false)) return;
+        long returnedAt = Math.max(System.currentTimeMillis(), launchedAt);
+        appPrefs.edit().putLong(pizzaSessionKey(gameKey), returnedAt)
+            .putBoolean("pending_pizza_session_recorded", true).apply();
+        for (Game candidate : games) {
+            if (candidate.key.equals(gameKey)) candidate.pizzaSessionStamp = returnedAt;
+        }
     }
 
     private void buildUi() {
@@ -138,7 +150,7 @@ public final class MainActivity extends Activity {
         TextView sorter = pill("Recent ▾", CARD, SECONDARY);
         sorter.setPadding(dp(10), dp(10), dp(10), dp(10));
         sorter.setOnClickListener(v -> new AlertDialog.Builder(this).setTitle("Sort library")
-            .setItems(new String[] {"Recently played (save timestamps)", "Title A–Z"}, (d, which) -> {
+            .setItems(new String[] {"Recent activity (battery save + Pizza session)", "Title A–Z"}, (d, which) -> {
                 newestFirst = which == 0;
                 sorter.setText(newestFirst ? "Recent ▾" : "A–Z ▾");
                 render();
@@ -236,7 +248,10 @@ public final class MainActivity extends Activity {
 
     private void migrateGamePreferences(Game game) {
         covers.migrateIdentity(game);
+        game.pizzaSessionStamp = appPrefs.getLong(pizzaSessionKey(game.key), 0);
     }
+
+    private String pizzaSessionKey(String gameKey) { return "pizza_session_" + gameKey; }
 
     private void clearLegacyLauncherChoices() {
         SharedPreferences preferences = getSharedPreferences("rom_shelf_launcher", MODE_PRIVATE);
@@ -353,8 +368,8 @@ public final class MainActivity extends Activity {
         LinearLayout.LayoutParams vLp = new LinearLayout.LayoutParams(-1, -2);
         vLp.setMargins(0, dp(4), 0, 0);
         textBox.addView(version, vLp);
-        TextView recent = text(game.lastPlayedEstimate() > 0 ? savedDate(game.lastPlayedEstimate()) :
-            (("SAVED".equals(game.saveStatus())) ? "Save date unknown" : "Not played yet"), 10, game.lastPlayedEstimate() > 0 ? GREEN : SECONDARY, false);
+        TextView recent = text(game.lastPlayedEstimate() > 0 ? activityDate(game) :
+            (("SAVED".equals(game.saveStatus())) ? "Battery save date unknown" : "Not played yet"), 10, game.lastPlayedEstimate() > 0 ? GREEN : SECONDARY, false);
         recent.setMaxLines(2);
         recent.setEllipsize(android.text.TextUtils.TruncateAt.END);
         LinearLayout.LayoutParams recentLp = new LinearLayout.LayoutParams(-1, -2);
@@ -369,8 +384,10 @@ public final class MainActivity extends Activity {
         grid.addView(tile, lp);
     }
 
-    private String savedDate(long millis) {
-        return easternDateFormat("'Saved' MMM d, yyyy · h:mm a z").format(new Date(millis));
+    private String activityDate(Game game) {
+        long millis = game.lastPlayedEstimate();
+        String source = game.pizzaSessionStamp > game.sharedStamp ? "Pizza session" : "Battery save";
+        return easternDateFormat("'" + source + "' MMM d, yyyy · h:mm a z").format(new Date(millis));
     }
     private String fullDate(long millis) {
         return millis <= 0 ? "Unknown (folder did not provide timestamp)" :
@@ -470,7 +487,8 @@ public final class MainActivity extends Activity {
                 }
                 try {
                     appPrefs.edit().putString("pending_screenshot_game", game.key)
-                        .putLong("pending_screenshot_after", System.currentTimeMillis()).apply();
+                        .putLong("pending_screenshot_after", System.currentTimeMillis())
+                        .putBoolean("pending_pizza_session_recorded", false).apply();
                     startActivity(intent);
                     return;
                 } catch (ActivityNotFoundException e) {
@@ -489,7 +507,8 @@ public final class MainActivity extends Activity {
         }
     }
     private void clearPendingScreenshot() {
-        if (appPrefs != null) appPrefs.edit().remove("pending_screenshot_game").remove("pending_screenshot_after").apply();
+        if (appPrefs != null) appPrefs.edit().remove("pending_screenshot_game").remove("pending_screenshot_after")
+            .remove("pending_pizza_session_recorded").apply();
     }
     private void openGame(Game game) {
         List<String> choices = new ArrayList<>();
@@ -508,9 +527,11 @@ public final class MainActivity extends Activity {
             .setTitle(game.title)
             .setMessage("ROM: " + game.fileName + "\nVersion: " + game.version +
                 "\nSave: " + (game.sharedSave == null ? "No .sav found" : game.sharedSave.getName() + " (" + game.sharedSave.length() + " bytes)") +
-                "\nLast save: " + fullDate(game.lastPlayedEstimate()) +
+                "\nMost recent activity (" + game.activitySource() + "): " + fullDate(game.lastPlayedEstimate()) +
+                "\nShared battery save: " + (game.sharedSave == null ? "Not found" : fullDate(game.sharedStamp)) +
+                "\nPizza session returned: " + (game.pizzaSessionStamp > 0 ? fullDate(game.pizzaSessionStamp) : "No ROM Shelf session recorded") +
                 "\nSelected emulator: " + launcherLabel(launcherFor(game)) +
-                "\n\nSave dates approximate play activity. ROM Shelf cannot force an emulator to load a save state. Only compatible battery saves are shared. Duplicate ROMs are hidden, not deleted.")
+                "\n\nWhen enabled in Pizza Boy, Auto Load Stat and Auto Save Stat use its automatic state slot. Android keeps Pizza's state files private, so ROM Shelf cannot read their exact timestamps; Recent uses the end of a ROM Shelf launch session as an activity estimate and compares it with the shared battery-save timestamp. Battery saves are shared; state files remain managed by Pizza Boy. Duplicate ROMs are hidden, not deleted.")
             .setPositiveButton("Close", null).show());
         new AlertDialog.Builder(this).setTitle(game.title)
             .setItems(choices.toArray(new String[0]), (d, i) -> actions.get(i).run()).show();
@@ -614,7 +635,7 @@ public final class MainActivity extends Activity {
     }
     private void showHelp() {
         new AlertDialog.Builder(this).setTitle("How ROM Shelf works")
-            .setMessage("1. Select the ROM folder and the Johnemulators/GBA/save folder for shared .sav files. Set Pizza Boy's Save folder to this same directory. John GBA remains installed with its data, but ROM Shelf launches every game through the selected Pizza Boy version.\n2. Tap a cover to play; long-press it for save, title, and artwork options.\n3. Enable screenshot covers and choose Pictures/Pizza Boy A Screenshots. Pizza Boy names screenshots by time, so ROM Shelf associates the newest screenshot taken during a game's launch session with that game when you return. Take the screenshot after reaching the save point you want shown. ROM Shelf copies it into its own cover cache. You can also import a screenshot directly for one game.\n\nThe saved time is the battery-save file timestamp in Eastern Time. Battery saves and emulator save states are different formats. Identical ROM content hashes appear once; original files are not deleted.")
+            .setMessage("1. Select the ROM folder and the Johnemulators/GBA/save folder for shared .sav files. Set Pizza Boy's Save folder to this same directory. John GBA remains installed with its data, but ROM Shelf launches every game through the selected Pizza Boy version.\n2. Tap a cover to play; long-press it for save, title, and artwork options.\n3. Enable screenshot covers and choose Pictures/Pizza Boy A Screenshots. Pizza Boy names screenshots by time, so ROM Shelf associates the newest screenshot taken during a game's launch session with that game when you return. Take the screenshot after reaching the save point you want shown. ROM Shelf copies it into its own cover cache. You can also import a screenshot directly for one game.\n\nRecent activity compares the shared battery-save time with the last completed ROM Shelf launch session, shown in Eastern Time. In Pizza Boy, Auto Load Stat and Auto Save Stat with slot 1 selected restore and update its automatic state. Android keeps Pizza's state files private, so ROM Shelf cannot read their exact file timestamps; the session time is an activity estimate. Identical ROM content hashes appear once; original files are not deleted.")
             .setPositiveButton("OK",null).show();
     }
     private void pickFolder(int request) {
