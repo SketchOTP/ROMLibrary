@@ -15,10 +15,12 @@ import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.LinkedHashMap;
+import java.util.Set;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.UUID;
@@ -27,6 +29,7 @@ final class FileStore {
     static final String ROMS = "roms", SHARED = "shared_saves", JOHN = "john", PIZZA = "pizza";
     private static final int MAX_SCAN = 3500;
     private static final int MAX_SAVE_BYTES = 8 * 1024 * 1024;
+    private static final long MAX_ROM_FILE_BYTES = 128L * 1024L * 1024L;
     private final Context context;
     private final SharedPreferences prefs;
     private int duplicateCount;
@@ -117,7 +120,7 @@ final class FileStore {
 
     private Map<String, Map<String, DocumentFile>> loadSaveMaps() {
         Map<String, Map<String, DocumentFile>> result = new HashMap<>();
-        result.put(SHARED, findSaves(folder(SHARED)));
+        result.put(SHARED, findSaves(folder(SHARED), SHARED));
         return result;
     }
 
@@ -145,6 +148,245 @@ final class FileStore {
         g.version = version;
     }
 
+    String importSelectedFiles(List<Uri> selected, List<Game> knownGames) throws Exception {
+        if (selected == null || selected.isEmpty()) return "No files selected";
+        DocumentFile romRoot = folder(ROMS);
+        DocumentFile saveRoot = folder(SHARED);
+        Set<String> knownHashes = new HashSet<>();
+        if (knownGames != null) for (Game game : knownGames) {
+            if (game.fingerprint != null && !game.fingerprint.isEmpty()) knownHashes.add(game.fingerprint);
+        }
+        // Re-read the selected tree so a prior import that has not reached the next UI scan yet
+        // cannot create another copy of the same ROM on a rapid second add.
+        if (romRoot != null) collectRomHashes(romRoot, knownHashes, 0, new int[] {0});
+        Set<String> knownNames = new HashSet<>();
+        if (romRoot != null) collectRomNames(romRoot, knownNames, 0, new int[] {0});
+
+        Map<String, SourceSave> selectedSaves = new LinkedHashMap<>();
+        List<String> issues = new ArrayList<>();
+        int addedRoms = 0, duplicateRoms = 0, addedSaves = 0, olderSaves = 0, unknownSaveTimes = 0, ignored = 0;
+        for (Uri uri : selected) {
+            DocumentFile source = DocumentFile.fromSingleUri(context, uri);
+            String name = source == null ? null : source.getName();
+            if (name == null) { ignored++; continue; }
+            String lower = name.toLowerCase(Locale.ROOT);
+            if (lower.endsWith(".sav")) {
+                String stem = lower.substring(0, lower.length() - 4);
+                if (stem.endsWith(".gba")) stem = stem.substring(0, stem.length() - 4);
+                else if (stem.endsWith(".zip")) stem = stem.substring(0, stem.length() - 4);
+                SourceSave previous = selectedSaves.get(stem);
+                long modified = Math.max(0, source.lastModified());
+                if (previous == null || modified > previous.modified) {
+                    selectedSaves.put(stem, new SourceSave(source, stem, modified));
+                }
+                continue;
+            }
+            boolean zip = lower.endsWith(".zip");
+            if (!zip && !lower.endsWith(".gba")) { ignored++; continue; }
+            if (romRoot == null || !romRoot.canWrite()) {
+                issues.add("ROM folder is not writable; ROM files were not copied");
+                break;
+            }
+            try {
+                String digest = digestRom(uri, name);
+                if (digest == null) throw new IllegalArgumentException("No GBA ROM found in " + name);
+                if (!knownHashes.add(digest)) { duplicateRoms++; continue; }
+                String destinationName = uniqueRomName(romRoot, safeRomName(name), knownNames);
+                copyRom(uri, romRoot, destinationName, digest);
+                knownNames.add(destinationName.toLowerCase(Locale.ROOT));
+                addedRoms++;
+            } catch (Exception e) {
+                issues.add(name + ": " + message(e));
+            }
+        }
+
+        if (!selectedSaves.isEmpty()) {
+            if (saveRoot == null || !saveRoot.canWrite()) {
+                issues.add("Shared save folder is not writable; selected .sav files were not copied");
+            } else {
+                Map<String, DocumentFile> currentSaves = findSaves(saveRoot, SHARED);
+                for (SourceSave source : selectedSaves.values()) {
+                    try {
+                        DocumentFile existing = currentSaves.get(source.stem);
+                        long existingTime = existing == null ? 0 : saveFileActivityTime(SHARED, existing);
+                        if (existing != null && source.modified == 0) {
+                            unknownSaveTimes++;
+                            continue;
+                        }
+                        if (existing != null && source.modified <= existingTime) {
+                            olderSaves++;
+                            continue;
+                        }
+                        byte[] contents = readDocument(source.file);
+                        String saveName = saveFileName(source.file.getName());
+                        if (existing != null) backup(source.stem, SHARED, existing);
+                        DocumentFile written = writeSaveFile(SHARED, existing,
+                            existing == null ? saveName : existing.getName(), contents);
+                        recordImportedSaveTime(SHARED, source.stem, source.modified, written);
+                        currentSaves.put(source.stem, written);
+                        addedSaves++;
+                        if (source.modified == 0) unknownSaveTimes++;
+                    } catch (Exception e) {
+                        issues.add(source.file.getName() + ": " + message(e));
+                    }
+                }
+            }
+        }
+
+        StringBuilder result = new StringBuilder();
+        result.append("Added ").append(addedRoms).append(" ROM").append(addedRoms == 1 ? "" : "s");
+        if (duplicateRoms > 0) result.append(" · ").append(duplicateRoms).append(" exact duplicate ROM").append(duplicateRoms == 1 ? "" : "s").append(" skipped");
+        if (addedSaves > 0) result.append(" · imported ").append(addedSaves).append(" newest matching .sav").append(addedSaves == 1 ? "" : " files");
+        if (olderSaves > 0) result.append(" · kept the newer shared save for ").append(olderSaves).append(" game").append(olderSaves == 1 ? "" : "s");
+        if (unknownSaveTimes > 0) result.append(" · timestamp unavailable for ").append(unknownSaveTimes).append(" selected save").append(unknownSaveTimes == 1 ? "" : "s");
+        if (ignored > 0) result.append(" · ignored ").append(ignored).append(" unsupported file").append(ignored == 1 ? "" : "s");
+        if (!issues.isEmpty()) result.append(" · ").append(String.join("; ", issues.subList(0, Math.min(2, issues.size()))));
+        return result.toString();
+    }
+
+    private static final class SourceSave {
+        final DocumentFile file;
+        final String stem;
+        final long modified;
+        SourceSave(DocumentFile file, String stem, long modified) {
+            this.file = file; this.stem = stem; this.modified = modified;
+        }
+    }
+
+    private static String message(Exception e) {
+        return e.getMessage() == null ? e.getClass().getSimpleName() : e.getMessage();
+    }
+
+    private String digestRom(Uri uri, String name) throws Exception {
+        try (InputStream input = context.getContentResolver().openInputStream(uri)) {
+            if (input == null) throw new IllegalStateException("Cannot read selected file");
+            return GbaRomDigest.digest(input, name.toLowerCase(Locale.ROOT).endsWith(".zip"));
+        }
+    }
+
+    private String digestRom(DocumentFile file) {
+        try {
+            String name = file.getName();
+            if (name == null) return null;
+            return digestRom(file.getUri(), name);
+        } catch (Exception ignored) { return null; }
+    }
+
+    private void copyRom(Uri sourceUri, DocumentFile destinationFolder, String name, String expectedDigest) throws Exception {
+        DocumentFile created = destinationFolder.createFile("application/octet-stream", name);
+        if (created == null) throw new IllegalStateException("Could not create ROM in the selected folder");
+        if (created.getName() == null || !name.equalsIgnoreCase(created.getName())) {
+            created.delete();
+            throw new IllegalStateException("Storage provider changed the ROM filename");
+        }
+        try {
+            ContentResolver resolver = context.getContentResolver();
+            long total = 0;
+            try (InputStream in = resolver.openInputStream(sourceUri);
+                 OutputStream out = resolver.openOutputStream(created.getUri(), "wt")) {
+                if (in == null || out == null) throw new IllegalStateException("ROM could not be opened for copying");
+                byte[] buffer = new byte[64 * 1024];
+                int count;
+                while ((count = in.read(buffer)) != -1) {
+                    total += count;
+                    if (total > MAX_ROM_FILE_BYTES) throw new IllegalArgumentException("ROM archive exceeds the 128 MiB import limit");
+                    out.write(buffer, 0, count);
+                }
+                if (total == 0) throw new IllegalArgumentException("Selected ROM is empty");
+                out.flush();
+            }
+            String copiedDigest = digestRom(created);
+            if (!expectedDigest.equals(copiedDigest)) throw new IllegalStateException("Copied ROM failed its content check");
+        } catch (Exception failure) {
+            created.delete();
+            throw failure;
+        }
+    }
+
+    private static String safeRomName(String original) {
+        String name = original.replaceAll("[/\\\\\\p{Cntrl}]", "_").trim();
+        if (!name.matches("(?i).+\\.(gba|zip)$")) throw new IllegalArgumentException("Choose a .gba or .zip game");
+        return name;
+    }
+
+    private static String uniqueRomName(DocumentFile root, String proposed, Set<String> names) {
+        String lower = proposed.toLowerCase(Locale.ROOT);
+        if (!names.contains(lower) && root.findFile(proposed) == null) return proposed;
+        int dot = proposed.lastIndexOf('.');
+        String base = dot > 0 ? proposed.substring(0, dot) : proposed;
+        String extension = dot > 0 ? proposed.substring(dot) : "";
+        for (int suffix = 2; suffix < 10000; suffix++) {
+            String candidate = base + " (" + suffix + ")" + extension;
+            if (!names.contains(candidate.toLowerCase(Locale.ROOT)) && root.findFile(candidate) == null) return candidate;
+        }
+        throw new IllegalStateException("Could not find an unused ROM filename");
+    }
+
+    private void collectRomNames(DocumentFile dir, Set<String> names, int depth, int[] count) {
+        if (depth > 8 || count[0] > MAX_SCAN) return;
+        for (DocumentFile item : dir.listFiles()) {
+            if (++count[0] > MAX_SCAN) return;
+            if (item.isDirectory()) collectRomNames(item, names, depth + 1, count);
+            else if (item.isFile() && item.getName() != null && item.getName().matches("(?i).*\\.(gba|zip)$")) {
+                names.add(item.getName().toLowerCase(Locale.ROOT));
+            }
+        }
+    }
+
+    private void collectRomHashes(DocumentFile dir, Set<String> hashes, int depth, int[] count) {
+        if (depth > 8 || count[0] > MAX_SCAN) return;
+        for (DocumentFile item : dir.listFiles()) {
+            if (++count[0] > MAX_SCAN) return;
+            if (item.isDirectory()) collectRomHashes(item, hashes, depth + 1, count);
+            else if (item.isFile() && item.getName() != null && item.getName().matches("(?i).*\\.(gba|zip)$")) {
+                String digest = digestRom(item);
+                if (digest != null) hashes.add(digest);
+            }
+        }
+    }
+
+    private static String saveFileName(String original) {
+        String safe = original.replaceAll("[/\\\\\\p{Cntrl}]", "_").trim();
+        if (!safe.toLowerCase(Locale.ROOT).endsWith(".sav")) throw new IllegalArgumentException("Choose a .sav battery save");
+        String stem = safe.substring(0, safe.length() - 4);
+        if (stem.toLowerCase(Locale.ROOT).endsWith(".gba") || stem.toLowerCase(Locale.ROOT).endsWith(".zip")) {
+            stem = stem.substring(0, stem.lastIndexOf('.'));
+        }
+        if (stem.trim().isEmpty()) throw new IllegalArgumentException("Save filename has no game name");
+        return stem + ".sav";
+    }
+
+    private String importedSaveKey(String destination, String stem) {
+        return "imported_save_" + destination + "_" + hash(stem.toLowerCase(Locale.ROOT));
+    }
+
+    private long saveFileActivityTime(String destination, DocumentFile save) {
+        if (save == null) return 0;
+        long modified = Math.max(0, save.lastModified());
+        Long imported = importedSourceActivityTime(destination, save);
+        return imported == null ? modified : imported;
+    }
+
+    private Long importedSourceActivityTime(String destination, DocumentFile save) {
+        String name = save.getName();
+        if (name == null || !name.toLowerCase(Locale.ROOT).endsWith(".sav")) return null;
+        String stem = name.substring(0, name.length() - 4).toLowerCase(Locale.ROOT);
+        String[] parts = prefs.getString(importedSaveKey(destination, stem), "").split(":", -1);
+        if (parts.length == 2) {
+            try {
+                long written = Long.parseLong(parts[0]);
+                long sourceTime = Long.parseLong(parts[1]);
+                if (sourceTime > 0 && Math.abs(Math.max(0, save.lastModified()) - written) <= 3000) return sourceTime;
+            } catch (NumberFormatException ignored) { }
+        }
+        return null;
+    }
+
+    private void recordImportedSaveTime(String destination, String stem, long sourceTime, DocumentFile file) {
+        long written = file == null ? 0 : Math.max(0, file.lastModified());
+        prefs.edit().putString(importedSaveKey(destination, stem), written + ":" + Math.max(0, sourceTime)).apply();
+    }
+
     private String romDigest(Game g) {
         try {
             try (InputStream raw = context.getContentResolver().openInputStream(g.rom.getUri())) {
@@ -157,6 +399,8 @@ final class FileStore {
     private String copiedKey(Game g, String destination) { return "copy_" + g.keyForSave() + "_" + destination; }
     private long originalActivityTime(Game g, String destination, DocumentFile save) {
         if (save == null) return 0;
+        Long imported = importedSourceActivityTime(destination, save);
+        if (imported != null) return imported;
         long modified = Math.max(0, save.lastModified());
         String data = prefs.getString(copiedKey(g, destination), "");
         String[] parts = data.split(":", -1);
@@ -167,12 +411,15 @@ final class FileStore {
                 if (modified != 0 && Math.abs(modified - written) <= 3000) return prior;
             } catch (NumberFormatException ignored) { }
         }
-        return modified;
+        return saveFileActivityTime(destination, save);
     }
 
     private void recordCopiedTime(Game g, String destination, long sourceTime, DocumentFile f) {
         long timestamp = f == null ? 0 : f.lastModified();
         prefs.edit().putString(copiedKey(g, destination), timestamp + ":" + Math.max(0, sourceTime)).apply();
+        if (f != null && f.getName() != null && f.getName().toLowerCase(Locale.ROOT).endsWith(".sav")) {
+            recordImportedSaveTime(destination, f.getName().substring(0, f.getName().length() - 4), sourceTime, f);
+        }
     }
 
     private void walkRoms(DocumentFile dir, List<Game> games, int depth, int[] count) {
@@ -186,34 +433,34 @@ final class FileStore {
         }
     }
 
-    private Map<String, DocumentFile> findSaves(DocumentFile root) {
+    private Map<String, DocumentFile> findSaves(DocumentFile root, String destination) {
         Map<String, DocumentFile> files = new HashMap<>();
-        if (root != null) walkSaves(root, files, 0, new int[] {0});
+        if (root != null) walkSaves(root, files, destination, 0, new int[] {0});
         return files;
     }
 
-    private void walkSaves(DocumentFile dir, Map<String, DocumentFile> found, int depth, int[] count) {
+    private void walkSaves(DocumentFile dir, Map<String, DocumentFile> found, String destination, int depth, int[] count) {
         if (depth > 4 || count[0] > MAX_SCAN) return;
         for (DocumentFile file : dir.listFiles()) {
             if (++count[0] > MAX_SCAN) return;
-            if (file.isDirectory()) walkSaves(file, found, depth + 1, count);
+            if (file.isDirectory()) walkSaves(file, found, destination, depth + 1, count);
             else {
                 String name = file.getName();
                 if (name != null && name.toLowerCase(Locale.ROOT).endsWith(".sav")) {
                     String stem = name.substring(0, name.length() - 4).toLowerCase(Locale.ROOT);
                     DocumentFile previous = found.get(stem);
-                    if (previous == null || file.lastModified() > previous.lastModified()) found.put(stem, file);
+                    if (previous == null || saveFileActivityTime(destination, file) > saveFileActivityTime(destination, previous)) found.put(stem, file);
                 }
             }
         }
     }
 
     DocumentFile findExactSave(Game game, String folderKey) {
-        Map<String, DocumentFile> saves = findSaves(folder(folderKey));
+        Map<String, DocumentFile> saves = findSaves(folder(folderKey), folderKey);
         DocumentFile newest = null;
         for (String stem : game.saveStems) {
             DocumentFile f = saves.get(stem.toLowerCase(Locale.ROOT));
-            if (f != null && (newest == null || f.lastModified() > newest.lastModified())) newest = f;
+            if (f != null && (newest == null || saveFileActivityTime(folderKey, f) > saveFileActivityTime(folderKey, newest))) newest = f;
         }
         return newest;
     }
@@ -248,7 +495,7 @@ final class FileStore {
         byte[] bytes = readDocument(destination);
         File dir = new File(context.getFilesDir(), "save-backups");
         if (!dir.exists() && !dir.mkdirs()) throw new IllegalStateException("Could not create backup directory");
-        File file = new File(dir, System.currentTimeMillis() + "_" + UUID.randomUUID() + "_" + destinationKey + "_" + hash(stem) + ".sav");
+        File file = new File(dir, System.currentTimeMillis() + "_" + UUID.randomUUID() + "_" + destinationKey + "_" + hash(stem.toLowerCase(Locale.ROOT)) + ".sav");
         File staged = File.createTempFile("save-backup-", ".tmp", dir);
         try {
             try (FileOutputStream out = new FileOutputStream(staged)) { out.write(bytes); out.getFD().sync(); }
@@ -260,10 +507,14 @@ final class FileStore {
     }
 
     private DocumentFile writeSave(Game game, String destinationKey, DocumentFile selectedTarget, byte[] bytes) throws Exception {
+        String expected = selectedTarget != null && selectedTarget.getName() != null ? selectedTarget.getName() : game.nameForSave();
+        return writeSaveFile(destinationKey, selectedTarget, expected, bytes);
+    }
+
+    private DocumentFile writeSaveFile(String destinationKey, DocumentFile selectedTarget, String expected, byte[] bytes) throws Exception {
         DocumentFile dir = folder(destinationKey);
         if (dir == null || !dir.canWrite()) throw new IllegalStateException("Destination folder not writable");
         DocumentFile existing = selectedTarget;
-        String expected = existing != null && existing.getName() != null ? existing.getName() : game.stem + ".sav";
         if (existing == null) {
             existing = dir.createFile("application/octet-stream", expected);
             if (existing == null) throw new IllegalStateException("Could not create destination save");
@@ -345,7 +596,9 @@ final class FileStore {
 
     File newestBackup(Game game, String destinationKey) {
         File dir = new File(context.getFilesDir(), "save-backups");
-        File[] files = dir.listFiles((d, n) -> n.endsWith("_" + destinationKey + "_" + hash(game.stem) + ".sav"));
+        String normalized = "_" + destinationKey + "_" + hash(game.stem.toLowerCase(Locale.ROOT)) + ".sav";
+        String legacy = "_" + destinationKey + "_" + hash(game.stem) + ".sav";
+        File[] files = dir.listFiles((d, n) -> n.endsWith(normalized) || n.endsWith(legacy));
         if (files == null || files.length == 0) return null;
         File newest = files[0];
         for (File f : files) if (f.lastModified() > newest.lastModified()) newest = f;

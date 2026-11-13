@@ -1,0 +1,63 @@
+{
+  "recorded_at_utc": "2026-11-13T22:20:48Z",
+  "task": "D-ROM-SHELF-FUTURE-INTAKE-20261113",
+  "repository": {
+    "base_commit": "8c5951b27df129ba164d5e20e003d9f63e2a4944",
+    "branch": "main",
+    "remote": "git@github.com:SketchOTP/ROMLibrary.git"
+  },
+  "release": {
+    "version_name": "0.4.0",
+    "version_code": 13,
+    "application_id": "com.animus.romshelf.launcher",
+    "signed_apk": "artifacts/rom-shelf/apk/ROM-Shelf-0.4.0.apk",
+    "signed_apk_sha256": "ba990ebb518779601e958611836fd0e2811ae5e368ac0ce5f974f11da444e0b2",
+    "signer_sha256": "b094cd94d6975c3c62c467658d38523091c638068b9fb3b06d0d2998a19d2456",
+    "apksigner": "passed",
+    "zipalign": "passed"
+  },
+  "implementation": {
+    "add_menu": [
+      "Add ROMs and optional .sav files",
+      "Add box art images",
+      "Rescan Shelf"
+    ],
+    "rom_import": "Copies .gba/.zip into the selected ROM tree; skips exact content duplicates using a fresh bounded scan; keeps source files; optional matching .sav files go to the canonical shared save tree only when newer than a known existing save; creates a backup before replacing.",
+    "box_art": "Persistent writable SAF folder; multi-image PNG/JPEG/WebP imports skip identical content and verify copies; long-press Change box art opens that folder and assigns a per-game custom cover; Settings offers folder selection and image import.",
+    "title_edit": "Long-press action labeled Edit game name.",
+    "pizza_launch": "Every card continues to use the app-wide Pizza Boy launch selection; matching shared battery saves are discovered by newest known timestamp."
+  },
+  "build": {
+    "command": "./gradlew :app:compileDebugJavaWithJavac assembleRelease lintVitalRelease",
+    "status": "passed",
+    "tests": "not run; not requested"
+  },
+  "device": {
+    "model": "Pixel 11 Pro Fold",
+    "connection": "wireless ADB",
+    "install": "adb install -r succeeded over 0.3.9 and final 0.4.0 relaunch succeeded",
+    "installed_version": "0.4.0 / versionCode 13",
+    "observed_library": "49 games, 31 shared battery saves, three duplicate ROMs hidden",
+    "observed_add_menu": true,
+    "observed_settings": [
+      "Box art folder",
+      "Add box art images",
+      "Pizza Boy version"
+    ],
+    "art_folder": "Pictures/Pizza Boy A Screenshots/ROM Shelf Box Art - Re-add",
+    "persistent_art_folder_grant": "selected and retained after app update/restart",
+    "observed_long_press_actions": [
+      "Edit game name",
+      "Change box art",
+      "Remove custom cover",
+      "Save and ROM details"
+    ],
+    "both_image_pickers_opened_in_art_folder": true,
+    "rom_save_cover_files_selected_or_changed": false
+  },
+  "limitations": [
+    "A newly added ROM and matching .sav were not imported on-device, so end-to-end Pizza launch and battery-save pickup for a new item remain unqualified.",
+    "No new title or cover was selected during device verification.",
+    "ROM Shelf cannot set Pizza Boy private save-folder or Auto Load/Save Stat settings or read exact private .stat timestamps; the Pixel was already configured for the shared battery-save folder and automatic slot 1."
+  ]
+}

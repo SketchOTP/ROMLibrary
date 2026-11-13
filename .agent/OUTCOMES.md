@@ -393,3 +393,45 @@ SUPERSEDES: none
 EVIDENCE: .authority/setup/rom-shelf-box-art-readd-20261113.json; .authority/setup/rom-shelf-covers-20261113/manifest.json; Pixel wireless ADB SHA-256 comparison; RomShelf/app/src/main/java/com/animus/romshelf/MainActivity.java:635-642
 SUMMARY: Copied the existing 52 ROM Shelf covers to Pixel Pictures/Pizza Boy A Screenshots/ROM Shelf Box Art - Re-add with readable filenames and correct image extensions. All 52 device SHA-256 values match the source; the existing Pizza screenshot and source cover directory were preserved.
 NEXT: Re-add any cover through the game card Import custom cover action and select the matching image from the new folder.
+
+## A6-WORKER-ROM-SHELF-INTAKE-040-20261113 — WORKER_REPORT
+
+ENTRY_ID: A6-WORKER-ROM-SHELF-INTAKE-040-20261113
+UTC: 2026-11-13T22:21:11Z
+ACTOR: authority-cli
+TYPE: WORKER_REPORT
+GOAL: see .agent/GOAL.md
+TASK: see .agent/CURRENT.md
+STATUS: REPORTED
+SUPERSEDES: none
+EVIDENCE: .authority/setup/rom-shelf-0.4.0-20261113.json; RomShelf/app/src/main/java/com/animus/romshelf/MainActivity.java; RomShelf/app/src/main/java/com/animus/romshelf/FileStore.java; RomShelf/app/src/main/java/com/animus/romshelf/CoverLoader.java
+SUMMARY: Implemented the top-bar ROM intake menu, optional timestamp-aware shared .sav import, persistent box-art folder, Settings image import, per-game Change box art and Edit game name actions. Added fresh-tree duplicate checks and case-insensitive save-backup lookup. Built, signed, and installed 0.4.0.
+NEXT: Verify a newly added ROM and matching save with an owner-approved disposable fixture.
+
+## A6-VERIFIER-ROM-SHELF-INTAKE-040-20261113 — VERIFICATION
+
+ENTRY_ID: A6-VERIFIER-ROM-SHELF-INTAKE-040-20261113
+UTC: 2026-11-13T22:21:11Z
+ACTOR: authority-cli
+TYPE: VERIFICATION
+GOAL: see .agent/GOAL.md
+TASK: see .agent/CURRENT.md
+STATUS: PARTIAL
+SUPERSEDES: none
+EVIDENCE: .authority/setup/rom-shelf-0.4.0-20261113.json; artifacts/rom-shelf/apk/ROM-Shelf-0.4.0.apk; RomShelf/README.md
+SUMMARY: Debug Java compilation, release assembly, and lint vital passed. The signed APK matches the established certificate and zip alignment. Pixel update and launch succeeded; the 49-game library remained intact. The plus menu, Settings rows, long-press actions, and image pickers opened in the persistent art folder. No ROM, save, or cover was imported or changed; new-item Pizza launch and save pickup remain unqualified.
+NEXT: Use a disposable GBA ROM and matching .sav to confirm import, Pizza launch, and save pickup without touching existing game data.
+
+## A6-CONDUCTOR-ROM-SHELF-INTAKE-040-20261113 — CONDUCTOR_DISPOSITION
+
+ENTRY_ID: A6-CONDUCTOR-ROM-SHELF-INTAKE-040-20261113
+UTC: 2026-11-13T22:21:11Z
+ACTOR: authority-cli
+TYPE: CONDUCTOR_DISPOSITION
+GOAL: see .agent/GOAL.md
+TASK: see .agent/CURRENT.md
+STATUS: PARTIAL
+SUPERSEDES: none
+EVIDENCE: .authority/setup/rom-shelf-0.4.0-20261113.json; RomShelf/PROJECT_HANDOFF.md; artifacts/rom-shelf/apk/ROM-Shelf-0.4.0.apk
+SUMMARY: Accepted the 0.4.0 implementation, signed update, and observed Pixel UI scope. Existing data and app setup are preserved. End-to-end new ROM/save import and emulator pickup remain explicitly unverified.
+NEXT: Qualify import and Pizza save behavior only with an owner-approved disposable fixture.

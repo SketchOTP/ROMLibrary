@@ -17,6 +17,7 @@ import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.DocumentsContract;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.Editable;
@@ -31,6 +32,7 @@ import android.widget.FrameLayout;
 import android.widget.GridLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.PopupMenu;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -47,6 +49,8 @@ public final class MainActivity extends Activity {
     private static final int BACKGROUND = 0xff101118, CARD = 0xff1d202b, TEXT = 0xfff5f3ff;
     private static final int SECONDARY = 0xffaaa5bb, PURPLE = 0xff9c75ef, GREEN = 0xff66d9a3;
     private static final int PICK_ROMS = 210, PICK_SHARED = 211, PICK_COVER = 213, EXPORT_SAVE = 214, IMPORT_SAVE = 215;
+    private static final int PICK_ART_FOLDER = 216, PICK_ROM_FILES = 217, PICK_ART_FILES = 218;
+    private static final int ART_ACTION_NONE = 0, ART_ACTION_IMPORT = 1, ART_ACTION_CHANGE_COVER = 2;
     private final Handler main = new Handler(Looper.getMainLooper());
     private final ExecutorService io = Executors.newSingleThreadExecutor();
     private final AtomicBoolean scanning = new AtomicBoolean(false);
@@ -56,6 +60,8 @@ public final class MainActivity extends Activity {
     private SharedPreferences appPrefs;
     private boolean newestFirst = true;
     private Game chosenCoverGame;
+    private int artActionAfterFolder = ART_ACTION_NONE;
+    private boolean addRomsAfterFolderGrant;
     private Game pendingSaveGame;
     private String pendingSaveSourceKey = FileStore.SHARED;
     private String pendingSaveDestinationKey = FileStore.SHARED;
@@ -155,6 +161,13 @@ public final class MainActivity extends Activity {
         LinearLayout.LayoutParams settingsLp = new LinearLayout.LayoutParams(-2, -2);
         settingsLp.leftMargin = dp(8);
         settings.setOnClickListener(v -> openSettings());
+        TextView add = pill("+", PURPLE, Color.WHITE);
+        add.setContentDescription("Add ROMs or box art");
+        add.setPadding(dp(13), dp(10), dp(13), dp(10));
+        LinearLayout.LayoutParams addLp = new LinearLayout.LayoutParams(-2, -2);
+        addLp.leftMargin = dp(8);
+        add.setOnClickListener(v -> showAddMenu(add));
+        top.addView(add, addLp);
         top.addView(settings, settingsLp);
 
         summary = text("Choose your ROM folder to start", 13, SECONDARY, false);
@@ -292,8 +305,8 @@ public final class MainActivity extends Activity {
             if (!g.title.toLowerCase(Locale.ROOT).contains(query) && !g.stem.toLowerCase(Locale.ROOT).contains(query)) continue;
             addGameCard(g, cardWidth, cols, shown++, savesLinked);
         }
-        folderStatus.setText("ROMs " + mark(FileStore.ROMS) + "   John / Pizza shared saves " + mark(FileStore.SHARED) +
-            "   ·   Pizza Boy launch · Hold for options");
+        folderStatus.setText("ROMs " + mark(FileStore.ROMS) + "   Shared saves " + mark(FileStore.SHARED) +
+            "   ·   Tap to play in Pizza Boy · Hold to edit");
         if (store.getUri(FileStore.ROMS) == null) {
             summary.setText("Choose a ROM folder to build your library");
             TextView select = pill("Choose ROM folder", PURPLE, Color.WHITE);
@@ -515,8 +528,8 @@ public final class MainActivity extends Activity {
             addAction(choices, actions, "Import .sav into shared folder", () -> confirmImport(game, FileStore.SHARED));
         if (store.newestBackup(game, FileStore.SHARED) != null)
             addAction(choices, actions, "Restore shared save backup", () -> confirmRestore(game, FileStore.SHARED));
-        addAction(choices, actions, "Edit display title", () -> editDisplayTitle(game));
-        addAction(choices, actions, "Import custom cover", () -> chooseCover(game));
+        addAction(choices, actions, "Edit game name", () -> editDisplayTitle(game));
+        addAction(choices, actions, "Change box art", () -> chooseCover(game));
         addAction(choices, actions, "Remove custom cover", () -> { covers.removeCustom(game); render(); });
         addAction(choices, actions, "Save and ROM details", () -> new AlertDialog.Builder(this)
             .setTitle(game.title)
@@ -608,6 +621,8 @@ public final class MainActivity extends Activity {
         String[] options = {
             "ROM folder " + mark(FileStore.ROMS),
             "John GBA / Pizza Boy shared saves " + mark(FileStore.SHARED),
+            "Box art folder · " + covers.artworkFolderName(),
+            "Add box art images",
             "Pizza Boy version: " + launcherLabel(resolvedDefaultLauncher()),
             "Rescan collection",
             "ROM Shelf help"
@@ -616,14 +631,182 @@ public final class MainActivity extends Activity {
             .setItems(options, (d,which) -> {
                 if (which == 0) pickFolder(PICK_ROMS);
                 else if (which == 1) pickFolder(PICK_SHARED);
-                else if (which == 2) chooseEmulator(null,false);
-                else if (which == 3) refresh();
+                else if (which == 2) requestArtworkFolder(ART_ACTION_NONE);
+                else if (which == 3) addArtworkFiles();
+                else if (which == 4) chooseEmulator(null,false);
+                else if (which == 5) refresh();
                 else showHelp();
             }).setNegativeButton("Close",null).show();
     }
+
+    private void showAddMenu(View anchor) {
+        PopupMenu menu = new PopupMenu(this, anchor);
+        menu.getMenu().add(0, 1, 0, "Add ROMs and optional .sav files");
+        menu.getMenu().add(0, 2, 1, "Add box art images");
+        menu.getMenu().add(0, 3, 2, "Rescan Shelf");
+        menu.setOnMenuItemClickListener(item -> {
+            if (item.getItemId() == 1) { startAddRoms(); return true; }
+            if (item.getItemId() == 2) { addArtworkFiles(); return true; }
+            if (item.getItemId() == 3) { refresh(); return true; }
+            return false;
+        });
+        menu.show();
+    }
+
+    private void startAddRoms() {
+        if (scanning.get()) { toast("Wait for the current Shelf scan to finish"); return; }
+        if (store.getUri(FileStore.ROMS) == null) {
+            addRomsAfterFolderGrant = true;
+            new AlertDialog.Builder(this).setTitle("Choose your Shelf folder")
+                .setMessage("ROM Shelf copies selected .gba/.zip files into this folder. Original files stay where they are.")
+                .setNegativeButton("Cancel", (d,w) -> addRomsAfterFolderGrant = false)
+                .setPositiveButton("Choose folder", (d,w) -> pickFolder(PICK_ROMS)).show();
+            return;
+        }
+        if (resolvedDefaultLauncher().isEmpty()) {
+            new AlertDialog.Builder(this).setTitle("Pizza Boy is not installed")
+                .setMessage("Install Pizza Boy GBA to launch games from the Shelf. You can still add ROM files now.")
+                .setNegativeButton("Cancel", null)
+                .setPositiveButton("Continue", (d,w) -> maybeChooseSaveFolderBeforeAdd()).show();
+            return;
+        }
+        maybeChooseSaveFolderBeforeAdd();
+    }
+
+    private void maybeChooseSaveFolderBeforeAdd() {
+        if (store.getUri(FileStore.SHARED) != null) { startRomFilePicker(); return; }
+        new AlertDialog.Builder(this).setTitle("Link shared saves")
+            .setMessage("Select the John GBA / Pizza Boy shared .sav folder once so new games can pick up their newest matching battery save automatically.")
+            .setNegativeButton("Cancel", null)
+            .setNeutralButton("Add without saves", (d,w) -> startRomFilePicker())
+            .setPositiveButton("Choose save folder", (d,w) -> {
+                addRomsAfterFolderGrant = true;
+                pickFolder(PICK_SHARED);
+            }).show();
+    }
+
+    private void startRomFilePicker() {
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        intent.setType("*/*");
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+        intent.putExtra(Intent.EXTRA_TITLE, "Choose .gba/.zip games and optional matching .sav files");
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        try { startActivityForResult(intent, PICK_ROM_FILES); }
+        catch (Exception e) { toast("File picker unavailable"); }
+    }
+
+    private void addArtworkFiles() {
+        if (covers.artworkFolderUri() == null) {
+            requestArtworkFolder(ART_ACTION_IMPORT);
+            return;
+        }
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        intent.setType("image/*");
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+        putInitialArtFolder(intent);
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        try { startActivityForResult(intent, PICK_ART_FILES); }
+        catch (Exception e) { toast("Image picker unavailable"); }
+    }
+
+    private void requestArtworkFolder(int followUpAction) {
+        artActionAfterFolder = followUpAction;
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION |
+            Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
+        Uri current = covers.artworkFolderUri();
+        if (current == null) current = defaultArtFolderDocumentUri();
+        if (current != null) intent.putExtra(DocumentsContract.EXTRA_INITIAL_URI, initialDocumentUri(current));
+        try { startActivityForResult(intent, PICK_ART_FOLDER); }
+        catch (Exception e) {
+            artActionAfterFolder = ART_ACTION_NONE;
+            toast("Folder picker unavailable");
+        }
+    }
+
+    private void chooseCover(Game game) {
+        chosenCoverGame = game;
+        if (covers.artworkFolderUri() == null) {
+            requestArtworkFolder(ART_ACTION_CHANGE_COVER);
+            return;
+        }
+        startCoverPicker();
+    }
+
+    private void startCoverPicker() {
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        intent.setType("image/*");
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        putInitialArtFolder(intent);
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        try { startActivityForResult(intent, PICK_COVER); }
+        catch (Exception e) { toast("Image picker unavailable"); }
+    }
+
+    private void putInitialArtFolder(Intent intent) {
+        Uri folder = covers.artworkFolderUri();
+        if (folder == null) folder = defaultArtFolderDocumentUri();
+        if (folder != null) intent.putExtra(DocumentsContract.EXTRA_INITIAL_URI, initialDocumentUri(folder));
+    }
+
+    private Uri defaultArtFolderDocumentUri() {
+        return DocumentsContract.buildDocumentUri("com.android.externalstorage.documents",
+            "primary:Pictures/Pizza Boy A Screenshots/ROM Shelf Box Art - Re-add");
+    }
+
+    private Uri initialDocumentUri(Uri uri) {
+        if (!DocumentsContract.isTreeUri(uri)) return uri;
+        try {
+            return DocumentsContract.buildDocumentUriUsingTree(uri, DocumentsContract.getTreeDocumentId(uri));
+        } catch (Exception ignored) { return uri; }
+    }
+
+    private List<Uri> selectedUris(Intent data) {
+        List<Uri> selected = new ArrayList<>();
+        ClipData clip = data.getClipData();
+        if (clip != null) {
+            for (int i = 0; i < clip.getItemCount(); i++) {
+                Uri item = clip.getItemAt(i).getUri();
+                if (item != null && !selected.contains(item)) selected.add(item);
+            }
+        }
+        Uri single = data.getData();
+        if (single != null && !selected.contains(single)) selected.add(single);
+        return selected;
+    }
+
+    private void importSelectedFiles(List<Uri> selected) {
+        if (selected.isEmpty()) return;
+        List<Game> knownGames = new ArrayList<>(games);
+        if (summary != null) summary.setText("Adding games and matching saves…");
+        io.execute(() -> {
+            String message;
+            try { message = store.importSelectedFiles(selected, knownGames); }
+            catch (Exception e) { message = "Could not add files: " + (e.getMessage() == null ? e.getClass().getSimpleName() : e.getMessage()); }
+            final String result = message;
+            main.post(() -> {
+                toast(result + " · tap to play in Pizza Boy; hold to edit name or box art");
+                refresh();
+            });
+        });
+    }
+
+    private void importArtworkFiles(List<Uri> selected) {
+        if (selected.isEmpty()) return;
+        io.execute(() -> {
+            String message;
+            try { message = covers.importArtworkFiles(selected); }
+            catch (Exception e) { message = "Could not add box art: " + (e.getMessage() == null ? e.getClass().getSimpleName() : e.getMessage()); }
+            final String result = message;
+            main.post(() -> toast(result + " · hold a game and choose Change box art to apply"));
+        });
+    }
+
     private void showHelp() {
         new AlertDialog.Builder(this).setTitle("How ROM Shelf works")
-            .setMessage("1. Select the ROM folder and the Johnemulators/GBA/save folder for shared .sav files. Set Pizza Boy's Save folder to this same directory. John GBA remains installed with its data, but ROM Shelf launches every game through the selected Pizza Boy version.\n2. Tap a cover to play; long-press it for save, title, custom cover, and details options. Covers can be imported from local image files or fetched from the Libretro GBA catalog.\n\nRecent saves compare the shared battery .sav time with the Pizza quickstate activity estimate recorded when you return from Pizza to ROM Shelf; the newest known time wins and appears in Eastern Time. In Pizza Boy, keep Auto Load Stat and Auto Save Stat enabled with automatic slot 1 selected. Android keeps Pizza's state files private, so ROM Shelf cannot read their exact file timestamps; the quickstate time is a session-return estimate, not a direct .stat timestamp. Identical ROM content hashes appear once; original files are not deleted.")
+            .setMessage("Tap + to add .gba/.zip games and optional matching .sav files. ROM Shelf copies selected games into the ROM folder, skips exact ROM duplicates, and keeps the newest matching shared battery save. Tap a game to launch it through the selected Pizza Boy version. Hold a game to edit its display name or change its box art.\n\nIn Settings, choose the box art folder once and use Add box art images to place more images there. Set Pizza Boy's Save folder in Pizza Boy to the same shared folder selected here. Recent sorting uses the newest known battery-save time or Pizza session-return quickstate estimate in Eastern Time. Pizza's private state files are inaccessible to ROM Shelf, so it cannot change Pizza's save-folder or Auto Load/Auto Save Stat settings or compare private state timestamps; keep automatic slot 1 enabled in Pizza Boy. Exact ROM duplicates are hidden, and source ROMs are never deleted.")
             .setPositiveButton("OK",null).show();
     }
     private void pickFolder(int request) {
@@ -632,19 +815,44 @@ public final class MainActivity extends Activity {
         try { startActivityForResult(intent,request); } catch (Exception e) { toast("Folder picker unavailable"); }
     }
 
-    private void chooseCover(Game game) {
-        chosenCoverGame = game;
-        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-        intent.setType("image/*");
-        intent.addCategory(Intent.CATEGORY_OPENABLE);
-        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-        startActivityForResult(intent, PICK_COVER);
-    }
-
     @Override protected void onActivityResult(int request, int result, Intent data) {
         super.onActivityResult(request, result, data);
-        if (result != RESULT_OK || data == null || data.getData() == null) return;
+        if (result != RESULT_OK || data == null) {
+            if (request == PICK_ART_FOLDER) artActionAfterFolder = ART_ACTION_NONE;
+            if (request == PICK_ROMS || request == PICK_SHARED) addRomsAfterFolderGrant = false;
+            return;
+        }
+        if (request == PICK_ROM_FILES) {
+            importSelectedFiles(selectedUris(data));
+            return;
+        }
+        if (request == PICK_ART_FILES) {
+            importArtworkFiles(selectedUris(data));
+            return;
+        }
         Uri uri = data.getData();
+        if (request == PICK_ART_FOLDER) {
+            if (uri == null) { artActionAfterFolder = ART_ACTION_NONE; return; }
+            try {
+                int flags = data.getFlags() & (Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+                int required = Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION;
+                if ((flags & required) != required) {
+                    throw new SecurityException("Choose a folder that allows reading and adding images");
+                }
+                getContentResolver().takePersistableUriPermission(uri, flags);
+                covers.setArtworkFolderUri(uri);
+                int followUp = artActionAfterFolder;
+                artActionAfterFolder = ART_ACTION_NONE;
+                toast("Box art folder set: " + covers.artworkFolderName());
+                if (followUp == ART_ACTION_IMPORT) addArtworkFiles();
+                else if (followUp == ART_ACTION_CHANGE_COVER && chosenCoverGame != null) startCoverPicker();
+            } catch (Exception e) {
+                artActionAfterFolder = ART_ACTION_NONE;
+                toast("Could not keep box art folder permission: " + e.getMessage());
+            }
+            return;
+        }
+        if (uri == null) return;
         if (request == EXPORT_SAVE || request == IMPORT_SAVE) {
             final Game game = pendingSaveGame;
             final String saveFolder = request == EXPORT_SAVE ? pendingSaveSourceKey : pendingSaveDestinationKey;
@@ -659,7 +867,16 @@ public final class MainActivity extends Activity {
             if (game == null) return;
             io.execute(() -> {
                 String message;
-                try { covers.importCover(game, uri); message = "Cover image updated"; }
+                try {
+                    covers.importCover(game, uri);
+                    message = "Box art updated";
+                    List<Uri> collectionCopy = new ArrayList<>();
+                    collectionCopy.add(uri);
+                    try {
+                        String added = covers.importArtworkFiles(collectionCopy);
+                        if (added.startsWith("Added 1")) message = "Box art updated and added to your folder";
+                    } catch (Exception ignored) { }
+                }
                 catch (Exception e) { message = e.getMessage(); }
                 final String resultText = message;
                 main.post(() -> { toast(resultText); render(); });
@@ -672,7 +889,13 @@ public final class MainActivity extends Activity {
             int flags = data.getFlags() & (Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
             getContentResolver().takePersistableUriPermission(uri, flags);
             store.saveUri(key, uri);
-            if (FileStore.ROMS.equals(key)) refresh(); else refreshSaveState();
+            if (FileStore.ROMS.equals(key)) {
+                if (addRomsAfterFolderGrant) { addRomsAfterFolderGrant = false; maybeChooseSaveFolderBeforeAdd(); }
+                else refresh();
+            } else {
+                if (addRomsAfterFolderGrant) { addRomsAfterFolderGrant = false; startRomFilePicker(); }
+                else refreshSaveState();
+            }
         } catch (Exception e) { toast("Could not keep folder permission: " + e.getMessage()); }
     }
 

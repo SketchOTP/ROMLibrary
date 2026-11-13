@@ -104,3 +104,15 @@ ROM Shelf 0.3.9 removes Pizza screenshot and John state-preview artwork features
 Custom cover import and Libretro box-art fetching remain. Recent still uses the shared `.sav` time and the Pizza session-return quickstate estimate; the exact `.stat` mtime remains unavailable to ROM Shelf.
 
 Release evidence: `.authority/setup/rom-shelf-no-screenshots-0.3.9-20261113.json`.
+
+## Owner refinement — add ROMs and manage box art — 2026-11-13
+
+ROM Shelf 0.4.0/versionCode 13 adds an intake and artwork workflow for future library additions.
+
+- The top-bar **+** menu offers **Add ROMs and optional .sav files**, **Add box art images**, and **Rescan Shelf**. Adding games copies `.gba`/`.zip` files into the selected ROM tree and retains the source files. Exact ROM-content duplicates are skipped. Optional `.sav` files are matched by filename stem and copied into the canonical John/Pizza shared save folder only when their timestamp is newer than the existing matching save. The prior shared save is backed up before replacement. If a source timestamp is unavailable, an existing save is preserved.
+- The artwork tree is selected once through Android's Storage Access Framework. Settings provides both **Box art folder** and **Add box art images**. Image import supports PNG/JPEG/WebP, skips byte-identical images, and verifies the copied bytes. A game's long-press menu now calls the title action **Edit game name** and includes **Change box art**. The picker starts in the chosen art tree; the chosen file is installed as that game's custom cover.
+- Pixel 0.4.0 was installed in place over 0.3.9 with the established owner signer. The home screen remained at 49 games, 31 saves, and three hidden duplicate ROMs. The `+` menu and Settings rows were observed. The existing `Pictures/Pizza Boy A Screenshots/ROM Shelf Box Art - Re-add` folder was selected for the persistent app grant; both the long-press cover picker and Settings image picker opened in that folder. The cover picker and import flow were canceled without choosing an image or altering a ROM or save.
+- The source builds with `:app:compileDebugJavaWithJavac`, `assembleRelease`, and `lintVitalRelease`. The signed artifact is `artifacts/rom-shelf/apk/ROM-Shelf-0.4.0.apk`, SHA-256 `ba990ebb518779601e958611836fd0e2811ae5e368ac0ce5f974f11da444e0b2`. Its signer SHA-256 matches the established owner certificate, and zip alignment and `apksigner` checks passed. This final build is installed on the Pixel.
+- **Not yet exercised with new inputs:** importing a new ROM/save pair, title editing, selecting/applying a new image, subsequent Pizza launch of an imported ROM, and Pizza's pickup of a newly imported `.sav`. The app continues to route all game-card taps to the selected Pizza Boy version and reads the newest matching battery save in the shared folder. ROM Shelf cannot edit Pizza Boy's private Save Folder or Auto Load/Save Stat configuration or inspect its exact `.stat` timestamp; on the Pixel, Pizza Boy was already configured for the shared battery-save folder and automatic slot 1.
+
+Evidence: `.authority/setup/rom-shelf-0.4.0-20261113.json`.

@@ -162,3 +162,18 @@ SUPERSEDES: A6-CHECKPOINT-ROM-SHELF-NO-SCREENSHOTS-039-20261113
 EVIDENCE: .authority/setup/rom-shelf-box-art-readd-20261113.json; .authority/setup/rom-shelf-covers-20261113/manifest.json; Pixel wireless ADB SHA-256 comparison; RomShelf/app/src/main/java/com/animus/romshelf/MainActivity.java:635-642
 SUMMARY: Copied 52 existing ROM Shelf cover images into Pixel Pictures/Pizza Boy A Screenshots/ROM Shelf Box Art - Re-add. Filenames are readable, extensions match PNG/JPEG/WebP contents, and all 52 on-device hashes match source images. The existing Pizza screenshot and original cover directory remain present. The app import picker uses ACTION_OPEN_DOCUMENT with image/*; opening that UI was not part of this copy task.
 NEXT: Re-add a cover from a game card with Import custom cover, selecting the corresponding image from the new folder.
+
+
+## A6-CHECKPOINT-ROM-SHELF-INTAKE-040-20261113 — add ROM and artwork workflows
+
+ENTRY_ID: A6-CHECKPOINT-ROM-SHELF-INTAKE-040-20261113
+UTC: 2026-11-13T22:21:29Z
+ACTOR: Codex
+TYPE: CHECKPOINT
+GOAL: A6-GOAL-ROM-SHELF-NO-SCREENSHOTS-20261113
+TASK: D-ROM-SHELF-FUTURE-INTAKE-20261113
+STATUS: PARTIAL
+SUPERSEDES: A6-CHECKPOINT-ROM-SHELF-BOX-ART-READD-20261113
+EVIDENCE: .authority/setup/rom-shelf-0.4.0-20261113.json; .agent/OUTCOMES.md; artifacts/rom-shelf/apk/ROM-Shelf-0.4.0.apk
+SUMMARY: Implemented future ROM and matching battery-save import, duplicate skipping, backup-safe newest-save replacement, persistent box-art folder management, and per-game title/cover actions in ROM Shelf 0.4.0/versionCode 13. Build, lint, signer, alignment, in-place Pixel install, main screen, add menu, Settings, long-press actions, and both art-folder picker entry paths were verified. The selected art folder permission survived app restart. No ROM, save, or cover was imported or modified; new-item Pizza launch/save pickup remains unqualified.
+NEXT: Use an owner-approved disposable ROM and matching .sav to verify import, Pizza launch, and save pickup while preserving existing game data.

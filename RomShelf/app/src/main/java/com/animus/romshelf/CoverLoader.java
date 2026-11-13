@@ -13,6 +13,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLDecoder;
@@ -20,14 +21,17 @@ import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.nio.file.Files;
+import java.security.MessageDigest;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import androidx.documentfile.provider.DocumentFile;
 
 final class CoverLoader {
     private static final String BASE = "https://thumbnails.libretro.com/Nintendo%20-%20Game%20Boy%20Advance/Named_Boxarts/";
@@ -118,6 +122,7 @@ final class CoverLoader {
     }
 
     private boolean isActiveLibraryFolder(Uri uri) {
+        if (uri.toString().equals(prefs.getString("artwork_folder_uri", null))) return true;
         SharedPreferences folders = context.getSharedPreferences("rom_shelf", Context.MODE_PRIVATE);
         String target = uri.toString();
         String[] keys = {
@@ -303,6 +308,139 @@ final class CoverLoader {
         if (in == null) throw new IllegalStateException("Image could not be opened");
         AtomicCoverFile.replaceFrom(in, selected, 10 * 1024 * 1024, file -> readScaled(file) != null);
     }
+
+    Uri artworkFolderUri() {
+        String value = prefs.getString("artwork_folder_uri", null);
+        return value == null || value.isEmpty() ? null : Uri.parse(value);
+    }
+
+    String artworkFolderName() {
+        Uri uri = artworkFolderUri();
+        try {
+            DocumentFile folder = uri == null ? null : DocumentFile.fromTreeUri(context, uri);
+            return folder == null || folder.getName() == null ? "Choose box art folder" : folder.getName();
+        } catch (SecurityException ignored) {
+            return "Re-select box art folder";
+        }
+    }
+
+    void setArtworkFolderUri(Uri uri) {
+        prefs.edit().putString("artwork_folder_uri", uri == null ? "" : uri.toString()).apply();
+    }
+
+    String importArtworkFiles(List<Uri> selected) throws Exception {
+        Uri tree = artworkFolderUri();
+        DocumentFile folder = tree == null ? null : DocumentFile.fromTreeUri(context, tree);
+        if (folder == null || !folder.isDirectory() || !folder.canWrite()) {
+            throw new IllegalStateException("Choose a writable box art folder in Settings first");
+        }
+        if (selected == null || selected.isEmpty()) return "No box art selected";
+
+        Set<String> names = new HashSet<>();
+        Set<String> checksums = new HashSet<>();
+        for (DocumentFile file : folder.listFiles()) {
+            String name = file.getName();
+            if (name != null) names.add(name.toLowerCase(Locale.ROOT));
+            if (file.isFile() && isImageName(name)) {
+                try { checksums.add(sha256(readImage(file.getUri()))); }
+                catch (Exception ignored) { }
+            }
+        }
+
+        int added = 0, duplicates = 0, ignored = 0;
+        List<String> failures = new ArrayList<>();
+        for (Uri uri : selected) {
+            DocumentFile source = DocumentFile.fromSingleUri(context, uri);
+            String originalName = source == null ? null : source.getName();
+            if (!isImageName(originalName)) { ignored++; continue; }
+            try {
+                byte[] bytes = readImage(uri);
+                String checksum = sha256(bytes);
+                if (!checksums.add(checksum)) { duplicates++; continue; }
+                String name = uniqueImageName(originalName, names);
+                DocumentFile created = folder.createFile(imageMime(name), name);
+                if (created == null || created.getName() == null || !name.equalsIgnoreCase(created.getName())) {
+                    if (created != null) created.delete();
+                    throw new IllegalStateException("Storage provider changed the image filename");
+                }
+                try {
+                    try (OutputStream out = context.getContentResolver().openOutputStream(created.getUri(), "wt")) {
+                        if (out == null) throw new IllegalStateException("Could not write into the box art folder");
+                        out.write(bytes);
+                        out.flush();
+                    }
+                    if (!checksum.equals(sha256(readImage(created.getUri())))) {
+                        throw new IllegalStateException("Copied image failed its content check");
+                    }
+                } catch (Exception failure) {
+                    created.delete();
+                    throw failure;
+                }
+                names.add(name.toLowerCase(Locale.ROOT));
+                added++;
+            } catch (Exception e) {
+                failures.add(originalName + ": " + (e.getMessage() == null ? e.getClass().getSimpleName() : e.getMessage()));
+            }
+        }
+        StringBuilder result = new StringBuilder("Added ").append(added).append(" box art image").append(added == 1 ? "" : "s");
+        if (duplicates > 0) result.append(" · ").append(duplicates).append(" identical image").append(duplicates == 1 ? "" : "s").append(" skipped");
+        if (ignored > 0) result.append(" · ").append(ignored).append(" unsupported file").append(ignored == 1 ? "" : "s").append(" ignored");
+        if (!failures.isEmpty()) result.append(" · ").append(failures.get(0));
+        return result.toString();
+    }
+
+    private static boolean isImageName(String name) {
+        return name != null && name.toLowerCase(Locale.ROOT).matches(".*\\.(png|jpe?g|webp)$");
+    }
+
+    private static String imageMime(String name) {
+        String lower = name.toLowerCase(Locale.ROOT);
+        if (lower.endsWith(".png")) return "image/png";
+        if (lower.endsWith(".webp")) return "image/webp";
+        return "image/jpeg";
+    }
+
+    private static String uniqueImageName(String proposed, Set<String> names) {
+        String safe = proposed.replaceAll("[/\\\\\\p{Cntrl}]", "_").trim();
+        if (!names.contains(safe.toLowerCase(Locale.ROOT))) return safe;
+        int dot = safe.lastIndexOf('.');
+        String base = dot > 0 ? safe.substring(0, dot) : safe;
+        String extension = dot > 0 ? safe.substring(dot) : "";
+        for (int suffix = 2; suffix < 10000; suffix++) {
+            String candidate = base + " (" + suffix + ")" + extension;
+            if (!names.contains(candidate.toLowerCase(Locale.ROOT))) return candidate;
+        }
+        throw new IllegalStateException("Could not find an unused image filename");
+    }
+
+    private byte[] readImage(Uri uri) throws Exception {
+        try (InputStream input = context.getContentResolver().openInputStream(uri);
+             ByteArrayOutputStream output = new ByteArrayOutputStream()) {
+            if (input == null) throw new IllegalStateException("Image could not be opened");
+            byte[] buffer = new byte[8192];
+            int count;
+            while ((count = input.read(buffer)) != -1) {
+                output.write(buffer, 0, count);
+                if (output.size() > 10 * 1024 * 1024) throw new IllegalArgumentException("Image must be under 10 MB");
+            }
+            byte[] bytes = output.toByteArray();
+            BitmapFactory.Options bounds = new BitmapFactory.Options();
+            bounds.inJustDecodeBounds = true;
+            BitmapFactory.decodeByteArray(bytes, 0, bytes.length, bounds);
+            if (bounds.outWidth <= 0 || bounds.outHeight <= 0 || (long) bounds.outWidth * bounds.outHeight > 100_000_000L) {
+                throw new IllegalArgumentException("File is not a supported image");
+            }
+            return bytes;
+        }
+    }
+
+    private static String sha256(byte[] bytes) throws Exception {
+        byte[] digest = MessageDigest.getInstance("SHA-256").digest(bytes);
+        StringBuilder out = new StringBuilder(digest.length * 2);
+        for (byte value : digest) out.append(String.format(Locale.ROOT, "%02x", value & 255));
+        return out.toString();
+    }
+
     boolean removeCustom(Game game) {
         boolean removed = new File(custom, game.key + ".img").delete();
         return new File(legacyCustom, game.key + ".img").delete() || removed;
